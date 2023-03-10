@@ -19,11 +19,11 @@ dependencies {
 android {
     compileSdkVersion(33)
     defaultConfig {
-        applicationId = "jp.ikanoshiokara.android"
+        applicationId = "jp.ikanoshiokara.pixelpilot"
         minSdkVersion(24)
         targetSdkVersion(33)
         versionCode = 1
-        versionName = "1.0-SNAPSHOT"
+        versionName = "$version"
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8

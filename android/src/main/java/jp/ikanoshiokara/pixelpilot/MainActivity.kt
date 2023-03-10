@@ -1,4 +1,4 @@
-package jp.ikanoshiokara.android
+package jp.ikanoshiokara.pixelpilot
 
 import jp.ikanoshiokara.common.App
 import android.os.Bundle
