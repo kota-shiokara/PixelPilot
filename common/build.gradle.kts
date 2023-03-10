@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "jp.ikanoshiokara"
-version = "1.0-SNAPSHOT"
+version = "0.0.1"
 
 kotlin {
     android()
