@@ -8,12 +8,12 @@ group = "jp.ikanoshiokara"
 version = "0.0.1"
 
 repositories {
-    jcenter()
+    mavenCentral()
 }
 
 dependencies {
     implementation(project(":common"))
-    implementation("androidx.activity:activity-compose:1.5.0")
+    implementation("androidx.activity:activity-compose:1.6.1")
 }
 
 android {
