@@ -10,9 +10,15 @@ allprojects {
 }
 
 plugins {
-    kotlin("multiplatform") apply false
-    kotlin("android") apply false
-    id("com.android.application") apply false
-    id("com.android.library") apply false
-    id("org.jetbrains.compose") apply false
+    // https://youtrack.jetbrains.com/issue/KTIJ-19369/False-positive-cant-be-called-in-this-context-by-implicit-receiver-with-plugins-in-Gradle-version-catalogs-as-a-TOML-file#focus=Comments-27-6204464.0-0
+    @Suppress("DSL_SCOPE_VIOLATION")
+    alias(libs.plugins.kotlin.multiplatform) apply false
+    @Suppress("DSL_SCOPE_VIOLATION")
+    alias(libs.plugins.kotlin.android) apply false
+    @Suppress("DSL_SCOPE_VIOLATION")
+    alias(libs.plugins.android.application) apply false
+    @Suppress("DSL_SCOPE_VIOLATION")
+    alias(libs.plugins.android.library) apply false
+    @Suppress("DSL_SCOPE_VIOLATION")
+    alias(libs.plugins.compose) apply false
 }

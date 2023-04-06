@@ -1,13 +1,14 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 
 plugins {
-    kotlin("multiplatform")
-    id("org.jetbrains.compose")
+    @Suppress("DSL_SCOPE_VIOLATION")
+    alias(libs.plugins.kotlin.multiplatform)
+    @Suppress("DSL_SCOPE_VIOLATION")
+    alias(libs.plugins.compose)
 }
 
 group = "jp.ikanoshiokara"
 version = "0.0.1"
-
 
 kotlin {
     jvm {
