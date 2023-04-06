@@ -1,7 +1,10 @@
 plugins {
-    id("org.jetbrains.compose")
-    id("com.android.application")
-    kotlin("android")
+    @Suppress("DSL_SCOPE_VIOLATION")
+    alias(libs.plugins.compose)
+    @Suppress("DSL_SCOPE_VIOLATION")
+    alias(libs.plugins.android.application)
+    @Suppress("DSL_SCOPE_VIOLATION")
+    alias(libs.plugins.kotlin.android)
 }
 
 group = "jp.ikanoshiokara"
@@ -13,15 +16,15 @@ repositories {
 
 dependencies {
     implementation(project(":common"))
-    implementation("androidx.activity:activity-compose:1.6.1")
+    implementation(libs.androidxActivityCompose)
 }
 
 android {
-    compileSdkVersion(33)
+    compileSdk = 33
     defaultConfig {
         applicationId = "jp.ikanoshiokara.pixelpilot"
-        minSdkVersion(24)
-        targetSdkVersion(33)
+        minSdk = 24
+        targetSdk = 33
         versionCode = 1
         versionName = "$version"
     }
