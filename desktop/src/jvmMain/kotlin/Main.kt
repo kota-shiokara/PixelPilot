@@ -1,20 +1,20 @@
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.toPainter
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.semantics.Role.Companion.Image
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
-import jp.ikanoshiokara.common.App
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import java.io.DataInputStream
 import java.net.InetAddress
 import java.net.ServerSocket
@@ -26,7 +26,10 @@ fun main() = application {
         onCloseRequest = ::exitApplication,
         title = "PixelPilot"
     ) {
-        println(InetAddress.getLocalHost().hostAddress)
+        val address = InetAddress.getLocalHost().hostAddress
+        val addressQRCode by remember { mutableStateOf(QRGenerator.generate(address).toPainter()) }
+        println(address)
+
         Surface(modifier = Modifier.fillMaxSize()) {
             val messages = mutableStateListOf<String>()
             val composableScope = rememberCoroutineScope()
@@ -50,6 +53,7 @@ fun main() = application {
                 modifier = Modifier.fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                Image(addressQRCode, contentDescription = "", contentScale = ContentScale.Fit)
                 Text("Message")
 
                 LazyColumn {
