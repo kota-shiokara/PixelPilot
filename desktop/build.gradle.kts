@@ -20,6 +20,9 @@ kotlin {
             dependencies {
                 implementation(project(":common"))
                 implementation(compose.desktop.currentOs)
+
+                implementation(libs.zxing)
+                implementation(libs.zxingJavase)
             }
         }
         val jvmTest by getting
