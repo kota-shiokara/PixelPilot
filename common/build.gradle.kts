@@ -34,11 +34,11 @@ kotlin {
                 api(libs.androidxCoreKtx)
             }
         }
-        val androidTest by getting {
-            dependencies {
-                implementation(libs.junit)
-            }
-        }
+//        val androidTest by getting {
+//            dependencies {
+//                implementation(libs.junit)
+//            }
+//        }
         val desktopMain by getting {
             dependencies {
                 api(compose.preview)

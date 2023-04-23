@@ -18,11 +18,16 @@ kotlin {
         val jvmMain by getting {
             dependencies {
                 implementation(project(":common"))
-                implementation(compose.desktop.currentOs)
+                implementation(compose.desktop.currentOs) {
+                    exclude("org.jetbrains.compose.material")
+                }
+                implementation(compose.uiTooling)
 
                 implementation(libs.zxing)
                 implementation(libs.zxingJavase)
                 implementation(libs.koinCore)
+
+                implementation(libs.jetbrainsExpUiTheme)
             }
         }
         val jvmTest by getting
@@ -36,6 +41,8 @@ compose.desktop {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = "PixelPilot"
             packageVersion = "1.0.0"
+            copyright = "kota-shiokara"
+            modules("jdk.unsupported")
         }
     }
 }

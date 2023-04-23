@@ -1,12 +1,9 @@
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
-import androidx.compose.material.Text
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.window.Window
@@ -20,8 +17,8 @@ import view.di.stateHolderModule
 import java.io.DataInputStream
 import java.net.ServerSocket
 
-
 private const val SERVER_PORT = 49152
+@OptIn(ExperimentalFoundationApi::class)
 fun main() {
     startKoin {
         modules(domainModule, stateHolderModule)
@@ -31,41 +28,36 @@ fun main() {
         val mainStateHolder by remember { mutableStateOf(GlobalContext.get().get<MainStateHolder>()) }
         val qrCode by mainStateHolder.qrState.collectAsState()
 
-        Window(
-            onCloseRequest = ::exitApplication,
-            title = "PixelPilot"
-        ) {
-            Surface(modifier = Modifier.fillMaxSize()) {
-                val messages = mutableStateListOf<String>()
-                val composableScope = rememberCoroutineScope()
+        MaterialTheme {
+            Window(
+                title = "PixelPilot",
+                onCloseRequest = ::exitApplication,
+            ) {
+                Surface {
+                    val messages = mutableStateListOf<String>()
+                    val composableScope = rememberCoroutineScope()
 
-                composableScope.launch(Dispatchers.IO) {
-                    try {
-                        val serverSocket = ServerSocket(SERVER_PORT)
-                        while (true) {
-                            val socket = serverSocket.accept()
-                            val inputStream = DataInputStream(socket.getInputStream())
-                            val message = inputStream.readUTF()
-                            println("receive: $message")
-                            messages.add(message)
-                        }
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
-                }
-
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Image(qrCode, contentDescription = "", contentScale = ContentScale.Fit)
-                    Text("Message")
-
-                    LazyColumn {
-                        items(messages) { message ->
-                            Text(message)
+                    composableScope.launch(Dispatchers.IO) {
+                        try {
+                            val serverSocket = ServerSocket(SERVER_PORT)
+                            while (true) {
+                                val socket = serverSocket.accept()
+                                val inputStream = DataInputStream(socket.getInputStream())
+                                val message = inputStream.readUTF()
+                                println("receive: $message")
+                                messages.add(message)
+                            }
+                        } catch (e: Exception) {
+                            e.printStackTrace()
                         }
                     }
+
+                    Image(
+                        qrCode,
+                        contentDescription = "",
+                        contentScale = ContentScale.Fit,
+                        modifier = Modifier.fillMaxSize()
+                    )
                 }
             }
         }
