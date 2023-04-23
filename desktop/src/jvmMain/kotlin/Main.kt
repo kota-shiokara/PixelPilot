@@ -12,10 +12,10 @@ import androidx.compose.ui.graphics.toPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
+import domain.usecase.GetAddressUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.DataInputStream
-import java.net.InetAddress
 import java.net.ServerSocket
 
 
@@ -25,7 +25,8 @@ fun main() = application {
         onCloseRequest = ::exitApplication,
         title = "PixelPilot"
     ) {
-        val address = InetAddress.getLocalHost().hostAddress
+        val getAddressUseCase = GetAddressUseCase()
+        val address = getAddressUseCase()
         val addressQRCode by remember { mutableStateOf(QRGenerator.generate(address).toPainter()) }
         println(address)
 
@@ -64,3 +65,4 @@ fun main() = application {
         }
     }
 }
+
