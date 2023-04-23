@@ -18,7 +18,6 @@ import java.io.DataInputStream
 import java.net.ServerSocket
 
 private const val SERVER_PORT = 49152
-@OptIn(ExperimentalFoundationApi::class)
 fun main() {
     startKoin {
         modules(domainModule, stateHolderModule)
