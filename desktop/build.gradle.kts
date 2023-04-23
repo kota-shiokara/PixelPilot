@@ -22,6 +22,7 @@ kotlin {
 
                 implementation(libs.zxing)
                 implementation(libs.zxingJavase)
+                implementation(libs.koinCore)
             }
         }
         val jvmTest by getting

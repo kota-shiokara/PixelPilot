@@ -3,6 +3,7 @@ androidxCore = "1.9.0"
 androidxAppCompat = "1.6.1"
 androidxActivity = "1.7.0"
 zxing = "3.5.1"
+koin = "3.4.0"
 
 junit = "4.13.2"
 
@@ -16,6 +17,7 @@ androidxAppCompat = { module = "androidx.appcompat:appcompat", version.ref = "an
 androidxActivityCompose = { module = "androidx.activity:activity-compose", version.ref = "androidxActivity" }
 zxing = { module = "com.google.zxing:core", version.ref = "zxing" }
 zxingJavase = { module = "com.google.zxing:javase", version.ref = "zxing" }
+koinCore = { module = "io.insert-koin:koin-core", version.ref = "koin" }
 
 junit = { module = "junit:junit", version.ref = "junit" }
 
