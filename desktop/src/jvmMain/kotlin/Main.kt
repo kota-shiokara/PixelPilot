@@ -1,10 +1,6 @@
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import domain.di.domainModule
@@ -16,8 +12,6 @@ import org.koin.core.context.startKoin
 import view.di.stateHolderModule
 import view.screen.qr.QrScreen
 import java.io.DataInputStream
-import java.net.ServerSocket
-
 
 fun main() {
     startKoin {
