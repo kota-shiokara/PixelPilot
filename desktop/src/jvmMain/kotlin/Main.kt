@@ -1,4 +1,3 @@
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.MaterialTheme
@@ -9,15 +8,17 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import domain.di.domainModule
+import domain.model.Screen
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.koin.core.context.GlobalContext
 import org.koin.core.context.startKoin
 import view.di.stateHolderModule
+import view.screen.qr.QrScreen
 import java.io.DataInputStream
 import java.net.ServerSocket
 
-private const val SERVER_PORT = 49152
+
 fun main() {
     startKoin {
         modules(domainModule, stateHolderModule)
@@ -25,38 +26,50 @@ fun main() {
 
     application {
         val mainStateHolder by remember { mutableStateOf(GlobalContext.get().get<MainStateHolder>()) }
-        val qrCode by mainStateHolder.qrState.collectAsState()
+        val state by mainStateHolder.state.collectAsState()
 
         MaterialTheme {
             Window(
                 title = "PixelPilot",
                 onCloseRequest = ::exitApplication,
             ) {
+                DisposableEffect(mainStateHolder) {
+                    mainStateHolder.setup()
+                    onDispose {
+//                        val frameWindowScope = this@Window
+//                        mainStateHolder.saveSetting(frameWindowScope.getWindowSize())
+                        mainStateHolder.dispose()
+                    }
+                }
+
                 Surface {
-                    val messages = mutableStateListOf<String>()
                     val composableScope = rememberCoroutineScope()
 
                     composableScope.launch(Dispatchers.IO) {
                         try {
-                            val serverSocket = ServerSocket(SERVER_PORT)
                             while (true) {
-                                val socket = serverSocket.accept()
+                                val socket = mainStateHolder.serverSocket.accept()
                                 val inputStream = DataInputStream(socket.getInputStream())
                                 val message = inputStream.readUTF()
                                 println("receive: $message")
-                                messages.add(message)
                             }
                         } catch (e: Exception) {
                             e.printStackTrace()
                         }
                     }
 
-                    Image(
-                        qrCode,
-                        contentDescription = "",
-                        contentScale = ContentScale.Fit,
-                        modifier = Modifier.fillMaxSize()
-                    )
+                    when(state.currentScreen) {
+                        is Screen.QrScreen -> {
+                            val qrScreenStateHolder = mainStateHolder.qrScreenStateHolder
+                            QrScreen(qrScreenStateHolder)
+                        }
+                        is Screen.SessionScreen -> {
+
+                        }
+                        else -> {
+
+                        }
+                    }
                 }
             }
         }
