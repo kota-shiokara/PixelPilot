@@ -29,7 +29,6 @@ class MainStateHolder(
     private val children: List<ChildStateHolder<*>> = listOf(
         qrScreenStateHolder
     )
-    val serverSocket = ServerSocket(SERVER_PORT)
 
     fun setup() {
         children.forEach { it.setup() }

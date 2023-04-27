@@ -37,21 +37,6 @@ fun main() {
                 }
 
                 Surface {
-                    val composableScope = rememberCoroutineScope()
-
-                    composableScope.launch(Dispatchers.IO) {
-                        try {
-                            while (true) {
-                                val socket = mainStateHolder.serverSocket.accept()
-                                val inputStream = DataInputStream(socket.getInputStream())
-                                val message = inputStream.readUTF()
-                                println("receive: $message")
-                            }
-                        } catch (e: Exception) {
-                            e.printStackTrace()
-                        }
-                    }
-
                     when(state.currentScreen) {
                         is Screen.QrScreen -> {
                             val qrScreenStateHolder = mainStateHolder.qrScreenStateHolder

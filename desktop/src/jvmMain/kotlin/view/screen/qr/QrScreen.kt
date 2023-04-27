@@ -6,8 +6,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import kotlinx.coroutines.launch
 
 @Composable
 fun QrScreen(
@@ -15,6 +17,8 @@ fun QrScreen(
     modifier: Modifier = Modifier,
 ) {
     val state by qrScreenStateHolder.state.collectAsState()
+
+    qrScreenStateHolder.waitClient()
 
     Box(
         modifier = modifier

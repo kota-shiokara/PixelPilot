@@ -7,7 +7,10 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.*
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -16,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.net.Socket
 
@@ -35,6 +39,8 @@ class MainActivity : AppCompatActivity() {
                     val message = remember { mutableStateOf("") }
                     val serverIp = remember { mutableStateOf("") }
                     val composableScope = rememberCoroutineScope()
+
+                    val receives = remember { mutableStateListOf<String>() }
 
                     Column(
                         modifier = Modifier.fillMaxSize(),
@@ -56,21 +62,26 @@ class MainActivity : AppCompatActivity() {
                         )
                         Button(
                             onClick = {
-                                Log.d("Message_Info", "Send: ${message.value}")
                                 composableScope.launch(Dispatchers.IO) {
                                     val socket = Socket(serverIp.value, SERVER_PORT)
                                     val outputStream = DataOutputStream(socket.getOutputStream())
-
+                                    val inputStream = DataInputStream(socket.getInputStream())
                                     outputStream.writeUTF(message.value)
-                                    outputStream.close()
-                                    socket.close()
+                                    val receiveMessage = inputStream.readUTF()
+                                    receives.add(receiveMessage)
 
+                                    Log.d("Message_Info", "Send: ${message.value}")
                                     message.value = ""
                                 }
                             },
                             modifier = Modifier.padding(10.dp)
                         ) {
                             Text("Send")
+                        }
+                        LazyColumn {
+                            items(receives) { receive ->
+                                Text(receive)
+                            }
                         }
                     }
                 }
