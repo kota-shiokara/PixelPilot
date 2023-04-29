@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import domain.di.domainModule
+import domain.di.repositoryModule
 import domain.model.Screen
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -28,7 +29,7 @@ import java.io.DataInputStream
 
 fun main() {
     startKoin {
-        modules(domainModule, stateHolderModule)
+        modules(domainModule, stateHolderModule, repositoryModule)
     }
 
     application {

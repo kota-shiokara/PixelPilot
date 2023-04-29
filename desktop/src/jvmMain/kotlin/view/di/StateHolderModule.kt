@@ -16,7 +16,8 @@ val stateHolderModule = module {
         MainStateHolder(
 //            qrScreenStateHolder = get()
             qrGenerateUseCase = get(),
-            getAddressUseCase = get()
+            getAddressUseCase = get(),
+            keyEventUseCase = get()
         )
     }
 }
