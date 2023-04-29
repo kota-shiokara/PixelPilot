@@ -46,3 +46,7 @@ compose.desktop {
         }
     }
 }
+
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+    kotlinOptions.languageVersion = "1.9"
+}

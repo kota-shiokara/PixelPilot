@@ -14,7 +14,9 @@ val stateHolderModule = module {
 
     factory {
         MainStateHolder(
-            qrScreenStateHolder = get()
+//            qrScreenStateHolder = get()
+            qrGenerateUseCase = get(),
+            getAddressUseCase = get()
         )
     }
 }
