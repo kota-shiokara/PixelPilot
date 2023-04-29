@@ -2,6 +2,7 @@ package jp.ikanoshiokara.pixelpilot
 
 import android.os.Bundle
 import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Column
@@ -17,6 +18,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.journeyapps.barcodescanner.ScanContract
+import com.journeyapps.barcodescanner.ScanOptions
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.DataInputStream
@@ -40,47 +43,60 @@ class MainActivity : AppCompatActivity() {
                     val serverIp = remember { mutableStateOf("") }
                     val composableScope = rememberCoroutineScope()
 
-                    val receives = remember { mutableStateListOf<String>() }
+                    val sessionState = remember { mutableStateOf<SessionState>(SessionState.WAIT) }
 
                     Column(
                         modifier = Modifier.fillMaxSize(),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Text("Enter IPAddress")
-                        TextField(
-                            value = serverIp.value,
-                            onValueChange = {
-                                serverIp.value = it
-                            }
-                        )
-                        Text("Enter message")
-                        TextField(
-                            value = message.value,
-                            onValueChange = {
-                                message.value = it
+                        val scanLauncher = rememberLauncherForActivityResult(
+                            contract = ScanContract(),
+                            onResult = { result ->
+                                serverIp.value = result.contents
                             }
                         )
                         Button(
                             onClick = {
-                                composableScope.launch(Dispatchers.IO) {
-                                    val socket = Socket(serverIp.value, SERVER_PORT)
-                                    val outputStream = DataOutputStream(socket.getOutputStream())
-                                    val inputStream = DataInputStream(socket.getInputStream())
-                                    outputStream.writeUTF(message.value)
-                                    val receiveMessage = inputStream.readUTF()
-                                    receives.add(receiveMessage)
-
-                                    Log.d("Message_Info", "Send: ${message.value}")
-                                    message.value = ""
-                                }
-                            },
-                            modifier = Modifier.padding(10.dp)
+                                scanLauncher.launch(ScanOptions())
+                            }
                         ) {
-                            Text("Send")
+                            Text("Start Connect")
                         }
-                        LazyColumn {
-                            items(receives) { receive ->
-                                Text(receive)
+
+                        Text("Connect Status: ${sessionState.value.stateMessage}")
+
+                        when(sessionState.value) {
+                            is SessionState.WAIT -> {
+                                Text("Enter message")
+                                TextField(
+                                    value = message.value,
+                                    onValueChange = {
+                                        message.value = it
+                                    }
+                                )
+                                Button(
+                                    onClick = {
+                                        composableScope.launch(Dispatchers.IO) {
+                                            val socket = Socket(serverIp.value, SERVER_PORT)
+                                            val outputStream = DataOutputStream(socket.getOutputStream())
+                                            val inputStream = DataInputStream(socket.getInputStream())
+                                            outputStream.writeUTF(message.value)
+                                            val receiveMessage = inputStream.readUTF()
+                                            if (receiveMessage == "pong") {
+                                                sessionState.value = SessionState.CONNECT
+                                            }
+
+                                            Log.d("Message_Info", "Send: ${message.value}")
+                                            message.value = ""
+                                        }
+                                    },
+                                    modifier = Modifier.padding(10.dp)
+                                ) {
+                                    Text("Send")
+                                }
+                            }
+                            is SessionState.CONNECT -> {
+
                             }
                         }
                     }

@@ -15,6 +15,7 @@ repositories {
 dependencies {
     implementation(project(":common"))
     implementation(libs.androidxActivityCompose)
+    implementation(libs.zxingAndroidEmbedded)
 }
 
 android {
