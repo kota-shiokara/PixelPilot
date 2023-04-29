@@ -2,27 +2,26 @@ package jp.ikanoshiokara.pixelpilot
 
 import android.os.Bundle
 import android.util.Log
-import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.*
-import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.journeyapps.barcodescanner.ScanContract
-import com.journeyapps.barcodescanner.ScanOptions
+import jp.ikanoshiokara.pixelpilot.MainActivity.Companion.SERVER_PORT
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.net.Socket
 
@@ -39,67 +38,139 @@ class MainActivity : AppCompatActivity() {
                 Surface(
                     modifier = Modifier.fillMaxSize()
                 ) {
-                    val message = remember { mutableStateOf("") }
-                    val serverIp = remember { mutableStateOf("") }
-                    val composableScope = rememberCoroutineScope()
-
-                    val sessionState = remember { mutableStateOf<SessionState>(SessionState.WAIT) }
-
                     Column(
                         modifier = Modifier.fillMaxSize(),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        val scanLauncher = rememberLauncherForActivityResult(
-                            contract = ScanContract(),
-                            onResult = { result ->
-                                serverIp.value = result.contents
-                            }
-                        )
-                        Button(
-                            onClick = {
-                                scanLauncher.launch(ScanOptions())
-                            }
-                        ) {
-                            Text("Start Connect")
-                        }
+                        val cameraState = remember { mutableStateOf(false) }
+                        val serverIp = remember { mutableStateOf("") }
 
-                        Text("Connect Status: ${sessionState.value.stateMessage}")
-
-                        when(sessionState.value) {
-                            is SessionState.WAIT -> {
-                                Text("Enter message")
-                                TextField(
-                                    value = message.value,
-                                    onValueChange = {
-                                        message.value = it
+                        if (cameraState.value) {
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                PreviewView(
+                                    modifier = Modifier.size(300.dp),
+                                    onSuccess = {
+                                        serverIp.value = it[0]
+                                        Log.d("MainActivity", it[0])
+                                        cameraState.value = false
                                     }
                                 )
-                                Button(
-                                    onClick = {
-                                        composableScope.launch(Dispatchers.IO) {
-                                            val socket = Socket(serverIp.value, SERVER_PORT)
-                                            val outputStream = DataOutputStream(socket.getOutputStream())
-                                            val inputStream = DataInputStream(socket.getInputStream())
-                                            outputStream.writeUTF(message.value)
-                                            val receiveMessage = inputStream.readUTF()
-                                            if (receiveMessage == "pong") {
-                                                sessionState.value = SessionState.CONNECT
-                                            }
-
-                                            Log.d("Message_Info", "Send: ${message.value}")
-                                            message.value = ""
-                                        }
-                                    },
-                                    modifier = Modifier.padding(10.dp)
-                                ) {
-                                    Text("Send")
+                            }
+                        } else {
+                            MainContent(
+                                serverIp = serverIp.value,
+                                cameraButtonOnClick = {
+                                    cameraState.value = true
                                 }
-                            }
-                            is SessionState.CONNECT -> {
-
-                            }
+                            )
                         }
                     }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun MainContent(
+    serverIp: String,
+    cameraButtonOnClick: () -> Unit = {},
+) {
+    val composableScope = rememberCoroutineScope()
+
+    val sessionState = remember { mutableStateOf<SessionState>(SessionState.WAIT) }
+
+    Text("Connect Status: ${sessionState.value.stateMessage}")
+
+    when(sessionState.value) {
+        is SessionState.WAIT -> {
+            Button(
+                onClick = cameraButtonOnClick
+            ) {
+                Text("Get Server IP")
+            }
+
+            if (serverIp.isNotBlank()) {
+                Button(
+                    onClick = {
+                        Log.d("Message_Info", serverIp)
+                        composableScope.launch(Dispatchers.IO) {
+                            Log.d("Message_Info", "coroutine start")
+                            val socket = Socket(serverIp, SERVER_PORT)
+                            val outputStream = DataOutputStream(socket.getOutputStream())
+                            outputStream.writeUTF("ping")
+
+                            sessionState.value = SessionState.CONNECT
+                        }
+                    },
+                    modifier = Modifier.padding(10.dp)
+                ) {
+                    Text("Start Connect")
+                }
+            }
+        }
+        is SessionState.CONNECT -> {
+            val sendCommand = { code: Int ->
+                composableScope.launch(Dispatchers.IO) {
+                    val socket = Socket(serverIp, SERVER_PORT)
+                    val outputStream = DataOutputStream(socket.getOutputStream())
+                    outputStream.writeUTF("$code")
+                }
+            }
+
+            Button(
+                onClick = {
+                    composableScope.launch(Dispatchers.IO) {
+                        val socket = Socket(serverIp, SERVER_PORT)
+                        val outputStream = DataOutputStream(socket.getOutputStream())
+                        outputStream.writeUTF("exit")
+
+                        sessionState.value = SessionState.WAIT
+                    }
+                }
+            ) {
+                Text("Exit")
+            }
+
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Button(
+                    onClick = {
+                        sendCommand(38)
+                    }
+                ) {
+                    Text("↑")
+                }
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Button(
+                        onClick = {
+                            sendCommand(37)
+                        }
+                    ) {
+                        Text("←")
+                    }
+                    Button(
+                        onClick = {
+                            sendCommand(39)
+                        }
+                    ) {
+                        Text("→")
+                    }
+                }
+                Button(
+                    onClick = {
+                        sendCommand(40)
+                    }
+                ) {
+                    Text("↓")
                 }
             }
         }

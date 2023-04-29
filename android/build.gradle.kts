@@ -16,6 +16,15 @@ dependencies {
     implementation(project(":common"))
     implementation(libs.androidxActivityCompose)
     implementation(libs.zxingAndroidEmbedded)
+
+    implementation(libs.cameraCore)
+    implementation(libs.cameraCamera2)
+    implementation(libs.cameraLifecycle)
+    implementation(libs.cameraVideo)
+    implementation(libs.cameraView)
+    implementation(libs.cameraExtensions)
+
+    implementation(libs.mlkitBarcodeScanning)
 }
 
 android {

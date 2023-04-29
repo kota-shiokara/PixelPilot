@@ -62,22 +62,21 @@ class MainStateHolder(
     }
 
     fun waitClient() {
-        coroutineScope.launch {
+        coroutineScope.launch(Dispatchers.IO) {
             try {
-                withContext(Dispatchers.IO) {
-                    while (true) {
-                        val socket = serverSocket.accept()
-                        val inputStream = DataInputStream(socket.getInputStream())
-                        val message = inputStream.readUTF()
-                        println(message)
+                while (true) {
+                    val socket = serverSocket.accept()
+                    val inputStream = DataInputStream(socket.getInputStream())
+                    val message = inputStream.readUTF()
+                    Log.d("waitClient: $message")
 
-                        if (message == "ping") {
-                            val outputStream = DataOutputStream(socket.getOutputStream())
-                            outputStream.writeUTF("pong")
-                            sessionState.value = Session.CONNECT
-                        }
+                    if (message == "ping") {
+//                            val outputStream = DataOutputStream(socket.getOutputStream())
+//                            outputStream.writeUTF("pong")
+                        break
                     }
                 }
+                sessionState.value = Session.CONNECT
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -85,21 +84,22 @@ class MainStateHolder(
     }
 
     fun waitCommand() {
-        coroutineScope.launch {
+        coroutineScope.launch(Dispatchers.IO) {
             try {
-                withContext(Dispatchers.IO) {
-                    while (true) {
-                        val socket = serverSocket.accept()
-                        val inputStream = DataInputStream(socket.getInputStream())
-                        val message = inputStream.readUTF()
-                        println(message)
-                        receivedCommand(message)
-
-                        if (message == "exit") {
-                            sessionState.value = Session.WAIT
-                        }
+                while (true) {
+                    val socket = serverSocket.accept()
+                    val inputStream = DataInputStream(socket.getInputStream())
+                    val message = inputStream.readUTF()
+                    Log.d("waitCommand: $message")
+                    if (message == "exit") {
+                        break
                     }
+
+                    val command = message.toInt()
+                    keyEventUseCase(KeyEvent.KeyPress(KeyCode(command)))
+                    keyEventUseCase(KeyEvent.KeyRelease(KeyCode(command)))
                 }
+                sessionState.value = Session.WAIT
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -107,8 +107,20 @@ class MainStateHolder(
     }
 
     private fun receivedCommand(message: String) {
-        val command = message.toKeyEvent()
-        keyEventUseCase(command)
+//        val command = message.toKeyEvent()
+        val command = message.toKeyCode()
+        keyEventUseCase(KeyEvent.KeyPress(command))
+        keyEventUseCase(KeyEvent.KeyRelease(command))
+    }
+}
+
+fun String.toKeyCode(): KeyCode {
+    return when(this.toInt()) {
+        37 -> KeyCode.LEFT
+        38 -> KeyCode.UP
+        39 -> KeyCode.RIGHT
+        40 -> KeyCode.DOWN
+        else -> KeyCode.DEFAULT
     }
 }
 

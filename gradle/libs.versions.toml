@@ -6,6 +6,8 @@ androidxActivity = "1.7.0"
 zxing = "3.5.1"
 zxingAndroid = "4.3.0"
 koin = "3.4.0"
+camerax = "1.2.1"
+mlkitBarcodeScanning = "17.1.0"
 
 # desktop
 jetbrainsExpUiTheme = "2.1.0"
@@ -27,6 +29,13 @@ zxing = { module = "com.google.zxing:core", version.ref = "zxing" }
 zxingJavase = { module = "com.google.zxing:javase", version.ref = "zxing" }
 zxingAndroidEmbedded = { module = "com.journeyapps:zxing-android-embedded", version.ref = "zxingAndroid" }
 koinCore = { module = "io.insert-koin:koin-core", version.ref = "koin" }
+cameraCore = { module = "androidx.camera:camera-core", version.ref = "camerax" }
+cameraCamera2 = { module = "androidx.camera:camera-camera2", version.ref = "camerax" }
+cameraLifecycle = { module = "androidx.camera:camera-lifecycle", version.ref = "camerax" }
+cameraVideo = { module = "androidx.camera:camera-video", version.ref = "camerax" }
+cameraView = { module = "androidx.camera:camera-view", version.ref = "camerax" }
+cameraExtensions = { module = "androidx.camera:camera-extensions", version.ref = "camerax" }
+mlkitBarcodeScanning = { module = "com.google.mlkit:barcode-scanning", version.ref = "mlkitBarcodeScanning" }
 
 # desktop
 jetbrainsExpUiTheme = { module = "com.bybutter.compose:compose-jetbrains-expui-theme", version.ref = "jetbrainsExpUiTheme" }
