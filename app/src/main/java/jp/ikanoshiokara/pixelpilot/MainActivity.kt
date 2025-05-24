@@ -8,8 +8,10 @@ import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresPermission
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
@@ -21,6 +23,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
+import jp.ikanoshiokara.pixelpilot.bluetooth.BluetoothHidMouseButton
 import jp.ikanoshiokara.pixelpilot.bluetooth.BluetoothHidMouseManager
 import jp.ikanoshiokara.pixelpilot.ui.theme.PixelPilotTheme
 import kotlinx.coroutines.launch
@@ -32,12 +36,14 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        bluetoothHidMouseManager = BluetoothHidMouseManager(this)
         setContent {
             val coroutineScope = rememberCoroutineScope()
+            val context = LocalContext.current
 
             LaunchedEffect(Unit) {
                 permissionRequest()
+                bluetoothHidMouseManager = BluetoothHidMouseManager(context)
+                bluetoothHidMouseManager.setupBluetooth()
             }
 
             PixelPilotTheme {
@@ -46,19 +52,18 @@ class MainActivity : ComponentActivity() {
                         modifier = Modifier.padding(innerPadding).fillMaxSize(),
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
-                        Button(
-                            onClick = {
-                                bluetoothHidMouseManager.setupBluetooth()
+                        Row {
+                            Button(
+                                onClick = {
+                                    coroutineScope.launch {
+                                        bluetoothHidMouseManager.sendMouseClick(
+                                            BluetoothHidMouseButton.MIDDLE
+                                        )
+                                    }
+                                }
+                            ) {
+                                Text("Middle Click")
                             }
-                        ) {
-                            Text("Setup Bluetooth")
-                        }
-                        Button(
-                            onClick = {
-                                bluetoothHidMouseManager.sendMouseReport(100, 100)
-                            }
-                        ) {
-                            Text("Click")
                         }
                         Box(
                             modifier = Modifier
@@ -66,10 +71,29 @@ class MainActivity : ComponentActivity() {
                                 .fillMaxSize()
                                 .background(color = Color.DarkGray)
                                 .pointerInput(Unit) {
+                                    detectTapGestures {
+                                        coroutineScope.launch {
+                                            if (it.x < size.width * 2 / 3) {
+                                                bluetoothHidMouseManager.sendMouseClick(
+                                                    BluetoothHidMouseButton.LEFT
+                                                )
+                                            } else {
+                                                bluetoothHidMouseManager.sendMouseClick(
+                                                    BluetoothHidMouseButton.RIGHT
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                                .pointerInput(Unit) {
                                     detectDragGestures { change, dragAmount ->
                                         val (dx, dy) = dragAmount
                                         coroutineScope.launch {
-                                            bluetoothHidMouseManager.sendMouseReport(dx.toInt().coerceIn(-127, 127), dy.toInt().coerceIn(-127, 127))
+                                            bluetoothHidMouseManager
+                                                .sendMouseReport(
+                                                    dx.toInt().coerceIn(-127, 127),
+                                                    dy.toInt().coerceIn(-127, 127)
+                                                )
                                         }
                                     }
                                 },

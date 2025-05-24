@@ -29,8 +29,9 @@ class BluetoothHidMouseManager(private val context: Context) {
                     bluetoothHidDevice = proxy as BluetoothHidDevice
                     registerHidApp()
                     val pairedDevices = adapter.bondedDevices
-                    if (pairedDevices.isNotEmpty()) {
-                        hostDevice = pairedDevices.first()
+                    // ここら辺を保存するなどでよしなにしてハードコーディングを避けたい
+                    if (pairedDevices.isNotEmpty() && pairedDevices.any { it.name.contains("kota") }) {
+                        hostDevice = pairedDevices.first { it.name.contains("kota") }
                         bluetoothHidDevice?.connect(hostDevice)
                         onConnected?.invoke()
                     }
@@ -43,7 +44,7 @@ class BluetoothHidMouseManager(private val context: Context) {
     @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
     private fun registerHidApp() {
         val sdp = BluetoothHidDeviceAppSdpSettings(
-            "BTMouse", "Mouse", "MyCompany",
+            "PixelPilot", "Mouse", "kota-shiokara",
             BluetoothHidDevice.SUBCLASS1_COMBO,
             MOUSE_REPORT_DESCRIPTOR
         )
@@ -67,6 +68,17 @@ class BluetoothHidMouseManager(private val context: Context) {
         }
     }
 
+    @RequiresPermission(Manifest.permission.BLUETOOTH_CONNECT)
+    fun sendMouseClick(button: BluetoothHidMouseButton) {
+        val report = byteArrayOf(button.value, 0x00, 0x00)
+        val clearReport = byteArrayOf(0x00, 0x00, 0x00)
+        hostDevice?.let {
+            bluetoothHidDevice?.sendReport(it, reportId, report)
+            // これをやらないとClickイベントがDownのままっぽい
+            bluetoothHidDevice?.sendReport(it, reportId, clearReport)
+        }
+    }
+
     companion object {
         private const val BYTE_A1 = 0xA1.toByte()
         private const val BYTE_95 = 0x95.toByte()
@@ -85,5 +97,15 @@ class BluetoothHidMouseManager(private val context: Context) {
             BYTE_C0, BYTE_C0
         )
     }
+}
+
+enum class BluetoothHidMouseButton(val value: Byte) {
+    LEFT(0x01),
+    RIGHT(0x02),
+    MIDDLE(0x04),
+    BACK(0x08),
+    FORWARD(0x10);
+
+    fun toByte(): Byte = value
 }
 
