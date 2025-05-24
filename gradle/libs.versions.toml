@@ -1,51 +1,32 @@
 [versions]
-# common
-androidxCore = "1.9.0"
-androidxAppCompat = "1.6.1"
-androidxActivity = "1.7.0"
-zxing = "3.5.1"
-zxingAndroid = "4.3.0"
-koin = "3.4.0"
-camerax = "1.2.1"
-mlkitBarcodeScanning = "17.1.0"
-
-# desktop
-jetbrainsExpUiTheme = "2.1.0"
-
-# test
+agp = "8.10.0"
+kotlin = "2.0.21"
+coreKtx = "1.10.1"
 junit = "4.13.2"
-
-# plugin
-android-plugin = "7.3.0"
-compose-plugin = "1.4.0"
-kotlin-plugin = "1.8.20"
+junitVersion = "1.1.5"
+espressoCore = "3.5.1"
+lifecycleRuntimeKtx = "2.6.1"
+activityCompose = "1.8.0"
+composeBom = "2024.09.00"
 
 [libraries]
-# common
-androidxCoreKtx = { module = "androidx.core:core-ktx", version.ref = "androidxCore" }
-androidxAppCompat = { module = "androidx.appcompat:appcompat", version.ref = "androidxAppCompat" }
-androidxActivityCompose = { module = "androidx.activity:activity-compose", version.ref = "androidxActivity" }
-zxing = { module = "com.google.zxing:core", version.ref = "zxing" }
-zxingJavase = { module = "com.google.zxing:javase", version.ref = "zxing" }
-zxingAndroidEmbedded = { module = "com.journeyapps:zxing-android-embedded", version.ref = "zxingAndroid" }
-koinCore = { module = "io.insert-koin:koin-core", version.ref = "koin" }
-cameraCore = { module = "androidx.camera:camera-core", version.ref = "camerax" }
-cameraCamera2 = { module = "androidx.camera:camera-camera2", version.ref = "camerax" }
-cameraLifecycle = { module = "androidx.camera:camera-lifecycle", version.ref = "camerax" }
-cameraVideo = { module = "androidx.camera:camera-video", version.ref = "camerax" }
-cameraView = { module = "androidx.camera:camera-view", version.ref = "camerax" }
-cameraExtensions = { module = "androidx.camera:camera-extensions", version.ref = "camerax" }
-mlkitBarcodeScanning = { module = "com.google.mlkit:barcode-scanning", version.ref = "mlkitBarcodeScanning" }
-
-# desktop
-jetbrainsExpUiTheme = { module = "com.bybutter.compose:compose-jetbrains-expui-theme", version.ref = "jetbrainsExpUiTheme" }
-
-# test
-junit = { module = "junit:junit", version.ref = "junit" }
+androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
+androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
+androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
+androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
+androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
+androidx-ui = { group = "androidx.compose.ui", name = "ui" }
+androidx-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
+androidx-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
+androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
+androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
+androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
+androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
 
 [plugins]
-android-application = { id = "com.android.application", version.ref = "android-plugin" }
-android-library = { id = "com.android.library", version.ref = "android-plugin" }
-compose = { id = "org.jetbrains.compose", version.ref = "compose-plugin" }
-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin-plugin" }
-kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin-plugin" }
+android-application = { id = "com.android.application", version.ref = "agp" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+
