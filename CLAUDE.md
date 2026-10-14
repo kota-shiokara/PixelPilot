@@ -35,7 +35,7 @@ Android SDK が必要。実機の Bluetooth 挙動はエミュレータでは確
 
 ## ブランチ運用
 
-- ブランチ名は基本的に `{issue番号}/{タスク名}` とする(例: `21/hid-report-descriptor`)。
+- ブランチ名は基本的に `issue-{issue番号}/{タスク名}` とする(例: `issue-21/hid-report-descriptor`)。
 - issue が無い場合は種別の接頭辞を付ける: `feature/`, `fix/`, `docs/` など(例: `docs/v2-design`)。
 - `claude/` 接頭辞は極力使用しない。
 
