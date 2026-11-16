@@ -3,6 +3,7 @@
 
     <!-- Bluetooth の権限は接続処理(#36)で追加する -->
     <application
+        android:name=".PixelPilotApplication"
         android:allowBackup="false"
         android:label="@string/app_name"
         android:supportsRtl="true"
