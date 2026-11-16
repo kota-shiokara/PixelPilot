@@ -1,4 +1,4 @@
-package jp.ikanoshiokara.pixelpilot.ui
+package jp.ikanoshiokara.pixelpilot.view.common
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -9,7 +9,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 
 /**
- * KMP 構成(androidApp → shared/ui-components)のつながりを確かめるための仮画面。
+ * KMP 構成(androidApp → view/common)のつながりを確かめるための仮画面。
  * ホスト選択(#44)やマウス画面(#40)ができたら削除する。
  */
 @Composable

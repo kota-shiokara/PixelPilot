@@ -1,5 +1,5 @@
 // v2.0 の Android アプリ。画面遷移・ホスト選択・設定画面など、Android 固有の骨格を置く。
-// UI 部品やロジックは shared/ 配下のモジュールに置く。
+// UI 部品は view/*、ロジックは domain/*、データ型は model/*、経路の実装は transport/* に置く。
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -38,11 +38,18 @@ android {
 }
 
 dependencies {
-    implementation(projects.shared.core)
-    implementation(projects.shared.hid)
-    implementation(projects.shared.uiComponents)
-    implementation(projects.shared.transport.api)
-    implementation(projects.shared.transport.bluetoothHid)
+    // androidApp は骨格として全レイヤーをつなぐ(経路の実装を Koin で view に注入する)
+    implementation(projects.modelInput)
+    implementation(projects.modelConnection)
+    implementation(projects.modelSettings)
+    implementation(projects.domainInput)
+    implementation(projects.domainHid)
+    implementation(projects.domainTransport)
+    implementation(projects.domainSettings)
+    implementation(projects.viewCommon)
+    implementation(projects.viewMouse)
+    implementation(projects.viewKeyboard)
+    implementation(projects.transportBluetoothHid)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)

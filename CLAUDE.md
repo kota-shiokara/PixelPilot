@@ -5,9 +5,10 @@
 ## 現状
 
 - `app/` は v1.0(Android 単体の Bluetooth HID マウス)。Kotlin + Jetpack Compose、minSdk 28。v2.0 の `androidApp/` に置き換えたら削除する(#30)。
-- `androidApp/` と `shared/` は v2.0(Kotlin Multiplatform)。開発中。
-  - `shared/core`(入力イベント・HID Usage)、`shared/hid`(Report Descriptor・エンコーダ)、`shared/ui-components`(Compose Multiplatform の UI 部品)、`shared/transport/api`(経路の抽象)、`shared/transport/bluetooth-hid`(Android の Bluetooth HID)
-  - v2.0 のターゲットは Android のみ。iOS・デスクトップのターゲットは v2.x で追加する。
+- v2.0(Kotlin Multiplatform)は `model/`・`domain/`・`view/`・`transport/`・`androidApp/` に置く。開発中。
+  - `model/*`(データ型)、`domain/*`(ロジックとインターフェース)、`view/*`(Compose Multiplatform の UI)、`transport/*`(経路の実装)、`androidApp`(骨格)
+  - 各モジュールのビルド設定は `build-logic/` の convention plugin(`pixelpilot.kmp.library` / `pixelpilot.kmp.compose`)にまとめる。
+  - v2.0 のターゲットは Android のみ。iOS・デスクトップのターゲットは v2.x で `build-logic` に追加する。
 - v2.0 は開発中。方針は `docs/design/v2.0.md` を参照し、設計に関わる変更はこのドキュメントと整合させること。決定事項が変わる場合はドキュメントも更新する。
 
 ## v2.0 の設計原則(要約)
@@ -15,6 +16,7 @@
 - 基本はモバイル単体で Bluetooth HID を使い、ホスト側のインストールを不要にする。デスクトップ版は高機能版。
 - Kotlin Multiplatform / Compose Multiplatform。**部品(入力イベント・プロトコル・UI 部品)は共通、骨格(画面遷移・ホスト選択・接続フロー)はプラットフォーム別**。
 - 共通コードに `isIOS` / `isAndroid` のような OS 分岐を持ち込まない。違いは `PlatformTransports` などのインターフェースで注入し、**OS 名ではなく能力(利用可能な経路)で振る舞いを決める**。
+- モジュールは **model / domain / view のレイヤー**で分ける。依存は view → domain → model の一方向のみ。view は transport に依存しない。同じレイヤー内で横の依存は作らず、共有するものは `*/common` に置く(詳細は `docs/design/v2.0.md` 7. モジュール構成)。
 - 入力イベントは HID Usage コードで表現する。
 - デスクトップ版との通信路は USB > Bluetooth > LAN の優先順。
 - DI は Koin(Dagger / Hilt は KMP 非対応のため不採用)。

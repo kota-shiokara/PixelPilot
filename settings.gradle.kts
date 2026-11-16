@@ -1,4 +1,6 @@
 pluginManagement {
+    // 各モジュール共通のビルド設定(pixelpilot.kmp.library など)
+    includeBuild("build-logic")
     repositories {
         google {
             content {
@@ -21,16 +23,35 @@ dependencyResolutionManagement {
 
 rootProject.name = "PixelPilot"
 
-// モジュール間の依存を projects.shared.core のように型安全に書く
+// モジュール間の依存を projects.modelInput のように型安全に書く
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 // v1.0 のアプリ。v2.0 の androidApp に置き換えるまで残す(#30)
 include(":app")
 
-// v2.0(KMP)。構成は docs/design/v2.0.md 7. モジュール構成を参照
+// v2.0(KMP)。構成と依存のルールは docs/design/v2.0.md 7. モジュール構成を参照。
+// ディレクトリは レイヤー/機能 の階層にし、プロジェクト名は「レイヤー-機能」にする。
+// model/input と domain/input のように同じ名前のディレクトリがあるため、
+// プロジェクト名(= Kotlin のモジュール名)が重ならないようにしている。
+fun includeModule(dir: String) {
+    val name = ":" + dir.replace('/', '-')
+    include(name)
+    project(name).projectDir = file(dir)
+}
+
 include(":androidApp")
-include(":shared:core")
-include(":shared:hid")
-include(":shared:ui-components")
-include(":shared:transport:api")
-include(":shared:transport:bluetooth-hid")
+
+includeModule("model/input")
+includeModule("model/connection")
+includeModule("model/settings")
+
+includeModule("domain/input")
+includeModule("domain/hid")
+includeModule("domain/transport")
+includeModule("domain/settings")
+
+includeModule("view/common")
+includeModule("view/mouse")
+includeModule("view/keyboard")
+
+includeModule("transport/bluetooth-hid")
