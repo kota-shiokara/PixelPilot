@@ -4,8 +4,11 @@
 
 ## 現状
 
-- `app/` は v1.0(Android 単体の Bluetooth HID マウス)。Kotlin + Jetpack Compose、minSdk 28。
-- v2.0 は設計段階。方針は `docs/design/v2.0.md` を参照し、設計に関わる変更はこのドキュメントと整合させること。決定事項が変わる場合はドキュメントも更新する。
+- `app/` は v1.0(Android 単体の Bluetooth HID マウス)。Kotlin + Jetpack Compose、minSdk 28。v2.0 の `androidApp/` に置き換えたら削除する(#30)。
+- `androidApp/` と `shared/` は v2.0(Kotlin Multiplatform)。開発中。
+  - `shared/core`(入力イベント・HID Usage)、`shared/hid`(Report Descriptor・エンコーダ)、`shared/ui-components`(Compose Multiplatform の UI 部品)、`shared/transport/api`(経路の抽象)、`shared/transport/bluetooth-hid`(Android の Bluetooth HID)
+  - v2.0 のターゲットは Android のみ。iOS・デスクトップのターゲットは v2.x で追加する。
+- v2.0 は開発中。方針は `docs/design/v2.0.md` を参照し、設計に関わる変更はこのドキュメントと整合させること。決定事項が変わる場合はドキュメントも更新する。
 
 ## v2.0 の設計原則(要約)
 
