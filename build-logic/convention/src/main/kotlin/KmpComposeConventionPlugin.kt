@@ -6,7 +6,7 @@ import org.gradle.kotlin.dsl.getByType
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 
 /**
- * Compose Multiplatform を使う KMP ライブラリモジュール(view/*)共通の設定(`pixelpilot.kmp.compose`)。
+ * Compose Multiplatform を使う KMP ライブラリモジュール(view 配下)共通の設定(`pixelpilot.kmp.compose`)。
  * `pixelpilot.kmp.library` の設定に加えて、Compose のコンパイラと基本の依存を追加する。
  */
 class KmpComposeConventionPlugin : Plugin<Project> {
