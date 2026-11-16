@@ -10,7 +10,7 @@
 ## v2.0 の設計原則(要約)
 
 - 基本はモバイル単体で Bluetooth HID を使い、ホスト側のインストールを不要にする。デスクトップ版は高機能版。
-- Kotlin Multiplatform / Compose Multiplatform。**部品(入力イベント・プロトコル・UI 部品)は共通、骨格(画面遷移・オンボーディング・接続フロー)はプラットフォーム別**。
+- Kotlin Multiplatform / Compose Multiplatform。**部品(入力イベント・プロトコル・UI 部品)は共通、骨格(画面遷移・ホスト選択・接続フロー)はプラットフォーム別**。
 - 共通コードに `isIOS` / `isAndroid` のような OS 分岐を持ち込まない。違いは `PlatformTransports` などのインターフェースで注入し、**OS 名ではなく能力(利用可能な経路)で振る舞いを決める**。
 - 入力イベントは HID Usage コードで表現する。
 - デスクトップ版との通信路は USB > Bluetooth > LAN の優先順。
