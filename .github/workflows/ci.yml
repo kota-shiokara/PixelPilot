@@ -1,0 +1,64 @@
+# PR と main への push で、ビルド・単体テスト・lint を実行する。
+# リモート環境(Claude Code on the web など)ではビルド・テストを実行しないため、検証はこの CI に任せる。
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# 同じブランチ・PR で新しい実行が始まったら、古い実行を止める
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build / Test / Lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # AGP 8.x は JDK 17 以上が必要
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      # Gradle のキャッシュと Gradle Wrapper の検証を行う。
+      # キャッシュの書き込みは main のみ(PR からは読み込みだけ)
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+
+      # モジュール名に依存しないよう、ルートのタスク名で全モジュールを対象にする
+      - name: Build
+        run: ./gradlew assembleDebug
+
+      - name: Unit test
+        run: ./gradlew test
+
+      # 単体テストが失敗しても lint の結果は確認できるようにする
+      - name: Lint
+        if: ${{ !cancelled() }}
+        run: ./gradlew lint
+
+      - name: Upload reports
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: reports
+          path: |
+            **/build/reports/
+            **/build/test-results/
+          if-no-files-found: ignore
+          retention-days: 14
