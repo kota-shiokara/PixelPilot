@@ -7,7 +7,7 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 
 /**
  * Compose Multiplatform を使う KMP ライブラリモジュール(view 配下)共通の設定(`pixelpilot.kmp.compose`)。
- * `pixelpilot.kmp.library` の設定に加えて、Compose のコンパイラと基本の依存を追加する。
+ * `pixelpilot.kmp.library` の設定に加えて、Compose のコンパイラと基本の依存(Koin の Compose 連携を含む)を追加する。
  */
 class KmpComposeConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) {
@@ -24,6 +24,8 @@ class KmpComposeConventionPlugin : Plugin<Project> {
                     implementation(libs.findLibrary("compose-mp-foundation").get())
                     implementation(libs.findLibrary("compose-mp-ui").get())
                     implementation(libs.findLibrary("compose-mp-material3").get())
+                    // 画面ごとの状態を持つクラスを Koin から受け取る(koinInject など)。koin-core も含む
+                    implementation(libs.findLibrary("koin-compose").get())
                 }
             }
         }

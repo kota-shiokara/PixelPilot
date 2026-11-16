@@ -19,7 +19,7 @@
 - モジュールは **model / domain / view のレイヤー**で分ける。依存は view → domain → model の一方向のみ。view は transport に依存しない。同じレイヤー内で横の依存は作らず、共有するものは `*/common` に置く(詳細は `docs/design/v2.0.md` 7. モジュール構成)。
 - 入力イベントは HID Usage コードで表現する。
 - デスクトップ版との通信路は USB > Bluetooth > LAN の優先順。
-- DI は Koin(Dagger / Hilt は KMP 非対応のため不採用)。
+- DI は Koin(Dagger / Hilt は KMP 非対応のため不採用)。model・domain は Koin に依存させず、view・transport が各自の Koin モジュールを提供し、アプリが `startKoin` でまとめる。
 
 ## ビルド・テスト
 
