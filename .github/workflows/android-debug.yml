@@ -1,0 +1,115 @@
+name: Android debug
+
+# Android(androidApp)のデバッグ版を Firebase App Distribution で配布する(docs/distribution.md)。
+# main にマージするたびに動く。続けてマージしたとき(スタック PR など)は、
+# 最初に 5 分待ち、その間に次のマージが来たら前の実行を取り消して、最後のマージの分だけを配布する。
+#
+# 使う Secrets / Variables(Secrets が無ければ配布しないで終わる。失敗にはしない):
+# - secrets.FIREBASE_ANDROID_DEBUG_APP_ID: Firebase に登録したアプリ(jp.ikanoshiokara.pixelpilot.debug)の App ID
+# - secrets.FIREBASE_SERVICE_ACCOUNT: App Distribution に上げられるサービスアカウントの鍵(JSON)
+# - secrets.ANDROID_DEBUG_KEYSTORE: デバッグ鍵(keystore)を base64 にしたもの
+# - vars.FIREBASE_TESTER_GROUPS: 配布先のテスターのグループ(カンマ区切り)
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: android-debug
+  cancel-in-progress: true
+
+jobs:
+  distribute:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    permissions:
+      # 配布したコミットに android-debug タグを付ける(次のリリースノートの起点)
+      contents: write
+    env:
+      FIREBASE_APP_ID: ${{ secrets.FIREBASE_ANDROID_DEBUG_APP_ID }}
+      FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+      ANDROID_DEBUG_KEYSTORE: ${{ secrets.ANDROID_DEBUG_KEYSTORE }}
+      TESTER_GROUPS: ${{ vars.FIREBASE_TESTER_GROUPS }}
+    steps:
+      - name: 設定を確かめる
+        id: config
+        shell: bash
+        run: |
+          if [ -z "$FIREBASE_APP_ID" ] || [ -z "$FIREBASE_SERVICE_ACCOUNT" ] || [ -z "$ANDROID_DEBUG_KEYSTORE" ]; then
+            echo "::notice::Firebase App Distribution の Secrets が無いので、配布しない(docs/distribution.md)"
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      # この間に次のマージが来ると、この実行は取り消される(concurrency)
+      - name: 続けてマージされるのを待つ(5 分)
+        if: steps.config.outputs.ready == 'true' && github.event_name == 'push'
+        run: sleep 300
+
+      - uses: actions/checkout@v4
+        if: steps.config.outputs.ready == 'true'
+        with:
+          # versionCode(コミット数)とリリースノート(前回の配布からのコミット)のため、履歴とタグを全部取る
+          fetch-depth: 0
+
+      # AGP 8.x は JDK 17 以上が必要(ci.yml と同じ)
+      - uses: actions/setup-java@v4
+        if: steps.config.outputs.ready == 'true'
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: gradle/actions/setup-gradle@v4
+        if: steps.config.outputs.ready == 'true'
+
+      - name: デバッグ版を作る
+        if: steps.config.outputs.ready == 'true'
+        shell: bash
+        run: |
+          echo "$ANDROID_DEBUG_KEYSTORE" | base64 -d > "$RUNNER_TEMP/debug.keystore"
+          ./gradlew :androidApp:assembleDebug \
+            -Ppixelpilot.versionCode="$(git rev-list --count HEAD)" \
+            -Ppixelpilot.commit="$(git rev-parse --short HEAD)" \
+            -Ppixelpilot.debugKeystore="$RUNNER_TEMP/debug.keystore"
+
+      - name: リリースノートを作る
+        if: steps.config.outputs.ready == 'true'
+        shell: bash
+        run: |
+          {
+            echo "$(git rev-parse --short HEAD) ($(date -u +%Y-%m-%d))"
+            echo
+            if git rev-parse -q --verify refs/tags/android-debug > /dev/null; then
+              git log --no-merges --format='- %s' android-debug..HEAD
+            else
+              git log --no-merges --format='- %s' -20
+            fi
+          } | head -c 15000 > "$RUNNER_TEMP/release-notes.txt"
+          cat "$RUNNER_TEMP/release-notes.txt"
+
+      - name: App Distribution に上げる
+        if: steps.config.outputs.ready == 'true'
+        shell: bash
+        run: |
+          echo "$FIREBASE_SERVICE_ACCOUNT" > "$RUNNER_TEMP/service-account.json"
+          export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/service-account.json"
+          apk=$(ls androidApp/build/outputs/apk/debug/*.apk | head -n 1)
+          groups=()
+          if [ -n "$TESTER_GROUPS" ]; then groups=(--groups "$TESTER_GROUPS"); fi
+          npx --yes firebase-tools@14 appdistribution:distribute "$apk" \
+            --app "$FIREBASE_APP_ID" \
+            --release-notes-file "$RUNNER_TEMP/release-notes.txt" \
+            "${groups[@]}"
+
+      - name: 配布したコミットに印を付ける
+        if: steps.config.outputs.ready == 'true'
+        shell: bash
+        run: |
+          git tag -f android-debug
+          git push -f origin refs/tags/android-debug
+
+      - name: 後片付け
+        if: always()
+        shell: bash
+        run: rm -f "$RUNNER_TEMP/debug.keystore" "$RUNNER_TEMP/service-account.json"

@@ -6,21 +6,45 @@ plugins {
     alias(libs.plugins.kotlin.compose)
 }
 
+// CI(デバッグ版の配布、docs/distribution.md)から渡すもの。手元のビルドでは無くてよい
+
+/** 配布するたびに増やす番号。CI は main のコミット数を渡す。 */
+val versionCodeOverride = providers.gradleProperty("pixelpilot.versionCode").orNull?.toInt()
+
+/** どのコードのビルドか(短いコミットのハッシュ)。版の名前に付ける。 */
+val commit = providers.gradleProperty("pixelpilot.commit").orNull
+
+/** デバッグ版に署名する鍵。配布した版の上に新しい版を入れられるよう、CI でも同じ鍵を使う。 */
+val debugKeystore = providers.gradleProperty("pixelpilot.debugKeystore").orNull
+
 android {
     namespace = "jp.ikanoshiokara.pixelpilot.android"
     compileSdk = 35
 
     defaultConfig {
-        // v1.0 からアップデートできるよう applicationId を引き継ぐ(#30)。
-        // そのため v1.0(app モジュール)と同じ端末に同時にはインストールできない。
+        // v2.0 はまっさらな環境から始めるため、v1.0 からのアップデートは考えない
         applicationId = "jp.ikanoshiokara.pixelpilot"
         minSdk = 28
         targetSdk = 35
-        versionCode = 2
-        versionName = "2.0.0-dev"
+        versionCode = versionCodeOverride ?: 1
+        versionName = "2.0.0"
+        manifestPlaceholders["appLabel"] = "PixelPilot"
+    }
+
+    signingConfigs {
+        getByName("debug") {
+            // 既定のデバッグ鍵(~/.android/debug.keystore)と同じパスワード・別名で作った鍵を渡す
+            debugKeystore?.let { storeFile = file(it) }
+        }
     }
 
     buildTypes {
+        getByName("debug") {
+            // リリース版と同じ端末に並べて入れられるよう、アプリ ID と表示名を分ける
+            applicationIdSuffix = ".debug"
+            versionNameSuffix = "-debug" + (commit?.let { "+$it" } ?: "")
+            manifestPlaceholders["appLabel"] = "PixelPilot (debug)"
+        }
         release {
             isMinifyEnabled = false
         }
