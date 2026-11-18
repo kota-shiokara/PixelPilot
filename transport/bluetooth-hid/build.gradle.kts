@@ -12,6 +12,8 @@ kotlin {
         androidMain.dependencies {
             // Koin モジュール(di パッケージ)で androidContext() を使う
             implementation(libs.koin.android)
+            // ContextCompat.registerReceiver(Bluetooth のオン / オフの通知)
+            implementation(libs.androidx.core.ktx)
         }
     }
 }

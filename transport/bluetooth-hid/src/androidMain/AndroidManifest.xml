@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Android 12(API 31)以降: 「付近のデバイス」。HID アプリの登録・接続と、検出可能にするために使う -->
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE" />
+
+    <!-- Android 11(API 30)以前: インストール時に許可される -->
+    <uses-permission
+        android:name="android.permission.BLUETOOTH"
+        android:maxSdkVersion="30" />
+    <uses-permission
+        android:name="android.permission.BLUETOOTH_ADMIN"
+        android:maxSdkVersion="30" />
+
+    <!-- 機器の探索はしないため BLUETOOTH_SCAN と位置情報の権限は使わない(docs/design/v2.0-standard.md 7.5) -->
+
+    <uses-feature
+        android:name="android.hardware.bluetooth"
+        android:required="true" />
+
+</manifest>
