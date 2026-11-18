@@ -5,6 +5,8 @@ import jp.ikanoshiokara.pixelpilot.model.connection.ErrorReason
 import jp.ikanoshiokara.pixelpilot.model.connection.HostDevice
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 class HidConnectionSignalTest {
     private val host = HostDevice(address = "00:11:22:33:44:55", name = "host")
@@ -107,6 +109,38 @@ class HidConnectionSignalTest {
             HidConnectionSignal.Registered,
         )
         assertEquals(ConnectionState.Ready, state)
+    }
+
+    @Test
+    fun userDisconnectReturnsToReadyWithoutError() {
+        assertEquals(ConnectionState.Ready, ConnectionState.Connected(host).after(HidConnectionSignal.DisconnectedByUser))
+        // 再接続中(エラー表示中)にユーザーが選び直した場合も、エラーを消す
+        assertEquals(
+            ConnectionState.Ready,
+            ConnectionState.Error(ErrorReason.CONNECTION_LOST).after(HidConnectionSignal.DisconnectedByUser),
+        )
+        assertEquals(ConnectionState.BluetoothOff, ConnectionState.BluetoothOff.after(HidConnectionSignal.DisconnectedByUser))
+    }
+
+    @Test
+    fun reconnectOnlyAfterLosingOrFailingToReachHost() {
+        assertTrue(ConnectionState.Error(ErrorReason.CONNECTION_LOST).shouldReconnect)
+        assertTrue(ConnectionState.Error(ErrorReason.HOST_NOT_FOUND).shouldReconnect)
+        assertFalse(ConnectionState.Error(ErrorReason.BLUETOOTH_OFF).shouldReconnect)
+        assertFalse(ConnectionState.Error(ErrorReason.HOST_REJECTED).shouldReconnect)
+        assertFalse(ConnectionState.Ready.shouldReconnect)
+        assertFalse(ConnectionState.Connected(host).shouldReconnect)
+    }
+
+    @Test
+    fun failedReconnectStaysHostNotFound() {
+        // 接続が切れる → 再接続を試みる → つながらない
+        val state = ConnectionState.Connected(host).after(
+            HidConnectionSignal.HostDisconnected(host),
+            HidConnectionSignal.HostConnecting(host),
+            HidConnectionSignal.HostDisconnected(host),
+        )
+        assertEquals(ConnectionState.Error(ErrorReason.HOST_NOT_FOUND), state)
     }
 
     @Test

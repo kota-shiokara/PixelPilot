@@ -10,9 +10,10 @@ import org.koin.dsl.module
 /**
  * Bluetooth HID 経路の Koin モジュール。各アプリ(androidApp)の `appModules` に並べる。
  *
- * 追加予定: ホストへの接続(#37)、InputTransport の実装(#38)
+ * BluetoothHidController は前回のホストの保存に HostRepository(androidApp が提供)を使う。
+ * 追加予定: InputTransport の実装(#38)
  */
 val bluetoothHidModule = module {
     single { AndroidPlatformTransports(androidContext()) } bind PlatformTransports::class
-    single { BluetoothHidController(androidContext(), get()) }
+    single { BluetoothHidController(androidContext(), get(), get()) }
 }

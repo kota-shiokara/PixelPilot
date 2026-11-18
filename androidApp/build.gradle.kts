@@ -82,6 +82,8 @@ dependencies {
     implementation(libs.androidx.material3)
 
     implementation(libs.koin.android)
+    // 設定・前回のホストの保存(domain/settings の実装)
+    implementation(libs.androidx.datastore.preferences)
 
     testImplementation(libs.junit)
     testImplementation(libs.koin.test)
