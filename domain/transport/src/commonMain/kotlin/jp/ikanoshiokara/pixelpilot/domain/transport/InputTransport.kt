@@ -1,7 +1,9 @@
 package jp.ikanoshiokara.pixelpilot.domain.transport
 
+import jp.ikanoshiokara.pixelpilot.model.connection.ConnectionState
 import jp.ikanoshiokara.pixelpilot.model.connection.TransportKind
 import jp.ikanoshiokara.pixelpilot.model.input.InputEvent
+import kotlinx.coroutines.flow.StateFlow
 
 /**
  * 入力イベントを PC に届ける経路。UI(view 配下)はこのインターフェース越しに送り、経路の実装を知らない。
@@ -11,6 +13,9 @@ import jp.ikanoshiokara.pixelpilot.model.input.InputEvent
 interface InputTransport {
     /** この経路の種類。 */
     val kind: TransportKind
+
+    /** この経路の接続状態。UI(接続状態の表示など)はこれを描画する。 */
+    val state: StateFlow<ConnectionState>
 
     /**
      * イベントを送る。呼び出し元のスレッド(UI スレッドなど)をブロックしない。
