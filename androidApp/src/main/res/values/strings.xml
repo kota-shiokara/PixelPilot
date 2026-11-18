@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  v2.0 は日本語のみ(docs/design/v2.0-standard.md 8.)。
+  v2.x で英語を追加するときは、既定(values/)を英語にし、日本語を values-ja/ に移す。
+  文言は docs/design/v2.0-standard.md 7.5 と画面デザインの仮案のとおり。
+-->
+<resources>
+    <string name="host_select_title">接続先を選ぶ</string>
+    <string name="bluetooth_section">Bluetooth で接続(PC 側のインストール不要)</string>
+
+    <string name="badge_action_needed">操作が必要</string>
+    <string name="badge_unsupported">この端末では使えません</string>
+    <string name="badge_checking">確認中</string>
+    <string name="badge_discoverable">検出可能</string>
+    <string name="badge_expired">時間切れ</string>
+
+    <string name="permission_title">「付近のデバイス」の許可が必要です</string>
+    <string name="permission_body">PC とペアリングして接続するために使います。位置情報は使いません。</string>
+    <string name="permission_button">許可する</string>
+    <string name="permission_blocked_title">許可がオフになっています</string>
+    <string name="permission_blocked_body">アプリの設定で「付近のデバイス」を許可してください。この画面に戻ると自動で続きから始まります。</string>
+    <string name="permission_blocked_button">アプリの設定を開く</string>
+
+    <string name="bluetooth_off_title">Bluetooth がオフです</string>
+    <string name="bluetooth_off_body">オンにすると、前回の PC に自動で接続します。</string>
+    <string name="bluetooth_off_button">Bluetooth をオンにする</string>
+
+    <string name="unsupported_title">Bluetooth のマウス・キーボード機能に対応していません</string>
+    <string name="unsupported_body">端末のメーカーがこの機能(Bluetooth HID)を無効にしています。端末の設定では変更できません。</string>
+    <string name="unsupported_device">端末: %1$s %2$s / Android %3$s</string>
+    <string name="unsupported_report">この端末の対応状況を報告する</string>
+
+    <string name="checking_title">Bluetooth の準備をしています</string>
+    <string name="checking_body">この端末がマウス・キーボードとして接続できるか確認しています(最大 5 秒)。</string>
+
+    <string name="last_host">前回のホスト</string>
+    <string name="paired_hosts">ペアリング済みの機器</string>
+    <string name="paired_hosts_empty">ペアリング済みの PC はありません</string>
+    <string name="paired_hosts_note">マウス・キーボードとして使えない機器(イヤホンなど)は表示しません。</string>
+    <string name="connect">接続する</string>
+    <string name="connecting">接続中…</string>
+    <string name="unnamed_host">名前のない機器(%1$s)</string>
+
+    <string name="new_pairing">新しい PC とペアリング</string>
+    <string name="new_pairing_note">押すとこのスマホが検出可能になります。PC の Bluetooth 設定からこのスマホを追加してください。</string>
+    <string name="pairing_title">PC からこのスマホを追加してください</string>
+    <string name="pairing_steps">Windows: 設定 › Bluetooth とデバイス › デバイスの追加\nmacOS: システム設定 › Bluetooth\n一覧に表示されたこのスマホを選ぶと、自動で接続します。</string>
+    <string name="pairing_remaining">残り %1$d:%2$02d(%3$d 秒間 検出可能)</string>
+    <string name="pairing_cancel">キャンセル</string>
+    <string name="pairing_expired_title">PC から見つけられる時間が終わりました</string>
+    <string name="pairing_expired_body">PC の一覧にこのスマホが出なかった場合は、もう一度検出可能にしてください。</string>
+    <string name="pairing_again">もう一度検出可能にする</string>
+
+    <string name="error_connection_lost">接続が切れました(再接続中…)</string>
+    <string name="error_host_not_found">PC が見つかりません。PC の電源と Bluetooth がオンか確認してください</string>
+    <string name="error_host_rejected">PC が接続を拒否しました。PC の Bluetooth 設定からこのスマホを削除し、ペアリングし直してください</string>
+    <string name="error_register_failed">Bluetooth の準備に失敗しました</string>
+    <string name="retry">もう一度</string>
+
+    <string name="connected_status">接続中</string>
+    <string name="connected_note">マウス・キーボードの画面は v2.0.1 で追加します。</string>
+    <string name="disconnect">切断して接続先を選び直す</string>
+</resources>

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- Bluetooth の権限は接続処理(#36)で追加する -->
+    <!-- Bluetooth の権限は transport/bluetooth-hid のマニフェストから合成される -->
     <application
         android:name=".PixelPilotApplication"
         android:allowBackup="false"
@@ -10,7 +10,9 @@
         android:theme="@android:style/Theme.Material.NoActionBar">
         <activity
             android:name=".MainActivity"
-            android:exported="true">
+            android:exported="true"
+            android:screenOrientation="portrait">
+            <!-- v2.0 は縦固定(docs/design/v2.0-standard.md 13. 決定事項 9)。回転で登録し直して接続が切れないようにする -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
