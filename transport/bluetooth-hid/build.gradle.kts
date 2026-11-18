@@ -9,5 +9,9 @@ kotlin {
             api(projects.domainTransport)
             implementation(projects.domainHid)
         }
+        androidMain.dependencies {
+            // Koin モジュール(di パッケージ)で androidContext() を使う
+            implementation(libs.koin.android)
+        }
     }
 }
