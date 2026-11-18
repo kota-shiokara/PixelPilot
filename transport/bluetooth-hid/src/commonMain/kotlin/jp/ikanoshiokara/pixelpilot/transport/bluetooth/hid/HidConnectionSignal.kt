@@ -32,6 +32,9 @@ internal sealed interface HidConnectionSignal {
 
     data class HostDisconnected(val host: HostDevice) : HidConnectionSignal
 
+    /** ユーザーの操作(接続先の選び直しなど)で切断した。エラーにはせず、再接続もしない。 */
+    data object DisconnectedByUser : HidConnectionSignal
+
     /** 停止した(アプリがバックグラウンドに回った等)。次の開始まで準備中の扱いにする。 */
     data object Stopped : HidConnectionSignal
 }
@@ -68,12 +71,22 @@ internal fun reduce(state: ConnectionState, signal: HidConnectionSignal): Connec
     is HidConnectionSignal.HostConnected -> ConnectionState.Connected(signal.host)
 
     is HidConnectionSignal.HostDisconnected -> when (state) {
-        // 使っていたホストとの接続が切れた。再接続は #37 で行う
+        // 使っていたホストとの接続が切れた。再接続は BluetoothHidController が試みる
         is ConnectionState.Connected -> ConnectionState.Error(ErrorReason.CONNECTION_LOST)
         // 接続しようとしていたホストにつながらなかった
         is ConnectionState.Connecting -> ConnectionState.Error(ErrorReason.HOST_NOT_FOUND)
         else -> state
     }
 
+    HidConnectionSignal.DisconnectedByUser -> when (state) {
+        is ConnectionState.Connected, is ConnectionState.Connecting, is ConnectionState.Error -> ConnectionState.Ready
+        else -> state
+    }
+
     HidConnectionSignal.Stopped -> ConnectionState.Registering
 }
+
+/** 再接続を試みるべき状態か。使っていたホストとの接続が切れた、または再接続に失敗した直後。 */
+internal val ConnectionState.shouldReconnect: Boolean
+    get() = this is ConnectionState.Error &&
+        (reason == ErrorReason.CONNECTION_LOST || reason == ErrorReason.HOST_NOT_FOUND)

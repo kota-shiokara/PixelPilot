@@ -8,6 +8,8 @@ kotlin {
         commonMain.dependencies {
             api(projects.domainTransport)
             implementation(projects.domainHid)
+            // 前回のホストの読み書き(自動接続・再接続)
+            implementation(projects.domainSettings)
         }
         androidMain.dependencies {
             // Koin モジュール(di パッケージ)で androidContext() を使う

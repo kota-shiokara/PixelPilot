@@ -3,6 +3,7 @@ package jp.ikanoshiokara.pixelpilot.transport.bluetooth.hid
 import android.Manifest
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothClass
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothHidDevice
 import android.bluetooth.BluetoothHidDeviceAppQosSettings
@@ -17,6 +18,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import androidx.core.content.ContextCompat
 import jp.ikanoshiokara.pixelpilot.domain.hid.HidReportDescriptor
+import jp.ikanoshiokara.pixelpilot.domain.settings.HostRepository
 import jp.ikanoshiokara.pixelpilot.model.connection.ConnectionState
 import jp.ikanoshiokara.pixelpilot.model.connection.HostDevice
 import jp.ikanoshiokara.pixelpilot.model.connection.TransportKind
@@ -28,21 +30,26 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
 
 /**
- * Bluetooth HID Device プロファイルの登録を管理し、[ConnectionState] を公開する。
+ * Bluetooth HID Device プロファイルの登録とホストへの接続を管理し、[ConnectionState] を公開する。
  *
- * 流れ(docs/design/v2.0-standard.md 7.2 の 1〜4):
- * 権限の確認 → Bluetooth のオン / オフ → `getProfileProxy(HID_DEVICE)`(最大 [PROFILE_TIMEOUT_MILLIS] 待つ)
- * → `registerApp` → `onAppStatusChanged(registered = true)` で [ConnectionState.Ready]。
+ * 流れ(docs/design/v2.0-standard.md 7.2):
+ * 1. 権限の確認 → Bluetooth のオン / オフ → `getProfileProxy(HID_DEVICE)`(最大 [PROFILE_TIMEOUT_MILLIS] 待つ)
+ *    → `registerApp` → `onAppStatusChanged(registered = true)` で [ConnectionState.Ready]。
+ * 2. 登録できたら、前回のホスト([HostRepository])に自動で接続する。ペアリング済みの一覧([pairedHosts])から
+ *    選んで [connect] することもできる。新しいホストは、検出可能にして([Discoverable])PC 側から追加してもらう。
+ * 3. 接続できたホストを保存する。使用中に切れたら、[RECONNECT_ATTEMPTS] 回まで再接続を試みる。
+ *    ユーザーの操作で切断した場合([disconnect])は再接続しない。
  *
  * - 権限の要求そのもの(ダイアログ)はアプリ側で行い、許可されたら [start] を呼ぶ。
  * - アプリがフォアグラウンドに来たら [start]、バックグラウンドに回ったら [stop] を呼ぶ(#44・#45 でつなぐ)。
- * - ホストへの接続と再接続は #37、レポートの送信は #38 で追加する。
+ * - レポートの送信は #38 で追加する。
  * - 状態の遷移は [reduce](純 Kotlin、単体テストあり)で決める。このクラスは Android の API の結果を
  *   [HidConnectionSignal] に置き換えて渡すだけにする。
  *
@@ -53,6 +60,7 @@ import java.util.concurrent.Executors
 class BluetoothHidController(
     private val context: Context,
     private val platformTransports: AndroidPlatformTransports,
+    private val hostRepository: HostRepository,
 ) {
     private val _state = MutableStateFlow<ConnectionState>(ConnectionState.Registering)
 
@@ -70,6 +78,16 @@ class BluetoothHidController(
     private var started = false
     private var receiverRegistered = false
     private var profileTimeout: Job? = null
+    private var reconnectJob: Job? = null
+    private var reconnectAttempts = 0
+
+    /** 接続中・接続しようとしているホスト。再接続に使う。 */
+    @Volatile
+    private var currentHost: HostDevice? = null
+
+    /** [disconnect] で切断を要求した。切断の通知が来ても再接続しない。 */
+    @Volatile
+    private var disconnectRequested = false
 
     /** 登録済みのプロファイルプロキシ。未取得・解放済みなら null。 */
     @Volatile
@@ -104,10 +122,87 @@ class BluetoothHidController(
         synchronized(lock) {
             if (!started) return
             started = false
+            cancelReconnect()
             unregisterBluetoothStateReceiver()
             releaseProfile()
             signal(HidConnectionSignal.Stopped)
         }
+    }
+
+    /**
+     * ペアリング済みの機器のうち、PC(Bluetooth の機器クラスがコンピュータ)のもの。
+     * イヤホンなど、マウス・キーボードの接続先にならない機器は含めない。
+     */
+    fun pairedHosts(): List<HostDevice> {
+        if (!hasConnectPermission()) return emptyList()
+        return adapter?.bondedDevices.orEmpty()
+            .filter { it.bluetoothClass?.majorDeviceClass == BluetoothClass.Device.Major.COMPUTER }
+            .map { it.toHostDevice() }
+    }
+
+    /** ホストに接続する。登録済みでない(プロファイルを取得していない)ときは何もしない。 */
+    fun connect(host: HostDevice) {
+        cancelReconnect()
+        connectInternal(host)
+    }
+
+    /** ホストとの接続を切る(接続先を選び直すとき)。再接続はしない。 */
+    fun disconnect() {
+        cancelReconnect()
+        val device = hidDevice
+        val host = currentHost
+        val adapter = adapter
+        if (device == null || host == null || adapter == null) {
+            signal(HidConnectionSignal.DisconnectedByUser)
+            return
+        }
+        disconnectRequested = true
+        // 切断の完了は onConnectionStateChanged で受け取る
+        if (!device.disconnect(adapter.getRemoteDevice(host.address))) {
+            disconnectRequested = false
+            signal(HidConnectionSignal.DisconnectedByUser)
+        }
+    }
+
+    private fun connectInternal(host: HostDevice) {
+        val device = hidDevice ?: return
+        val adapter = adapter ?: return
+        disconnectRequested = false
+        currentHost = host
+        if (!device.connect(adapter.getRemoteDevice(host.address))) {
+            // 接続を始められなかった。つながらなかった場合と同じ扱い(HOST_NOT_FOUND)にする
+            signal(HidConnectionSignal.HostConnecting(host))
+            signal(HidConnectionSignal.HostDisconnected(host))
+        }
+    }
+
+    /** 登録できたときに、前回のホストへ自動で接続する。 */
+    private fun connectToLastHost() {
+        scope.launch {
+            val address = hostRepository.lastHostAddress.first() ?: return@launch
+            val adapter = adapter ?: return@launch
+            if (state.value == ConnectionState.Ready) {
+                connectInternal(adapter.getRemoteDevice(address).toHostDevice())
+            }
+        }
+    }
+
+    /** 使用中に切れたときに、少し待ってから再接続を試みる。[RECONNECT_ATTEMPTS] 回で諦める。 */
+    private fun scheduleReconnect() {
+        val host = currentHost ?: return
+        if (reconnectAttempts >= RECONNECT_ATTEMPTS) return
+        reconnectAttempts++
+        reconnectJob?.cancel()
+        reconnectJob = scope.launch {
+            delay(RECONNECT_INTERVAL_MILLIS)
+            if (state.value.shouldReconnect) connectInternal(host)
+        }
+    }
+
+    private fun cancelReconnect() {
+        reconnectJob?.cancel()
+        reconnectJob = null
+        reconnectAttempts = 0
     }
 
     private fun requestProfile(adapter: BluetoothAdapter) {
@@ -172,15 +267,37 @@ class BluetoothHidController(
 
     private val hidCallback = object : BluetoothHidDevice.Callback() {
         override fun onAppStatusChanged(pluggedDevice: BluetoothDevice?, registered: Boolean) {
-            signal(if (registered) HidConnectionSignal.Registered else HidConnectionSignal.RegisterFailed)
+            if (registered) {
+                signal(HidConnectionSignal.Registered)
+                connectToLastHost()
+            } else {
+                signal(HidConnectionSignal.RegisterFailed)
+            }
         }
 
         override fun onConnectionStateChanged(device: BluetoothDevice, state: Int) {
             val host = device.toHostDevice()
             when (state) {
-                BluetoothProfile.STATE_CONNECTING -> signal(HidConnectionSignal.HostConnecting(host))
-                BluetoothProfile.STATE_CONNECTED -> signal(HidConnectionSignal.HostConnected(host))
-                BluetoothProfile.STATE_DISCONNECTED -> signal(HidConnectionSignal.HostDisconnected(host))
+                BluetoothProfile.STATE_CONNECTING -> {
+                    currentHost = host
+                    signal(HidConnectionSignal.HostConnecting(host))
+                }
+                BluetoothProfile.STATE_CONNECTED -> {
+                    currentHost = host
+                    disconnectRequested = false
+                    cancelReconnect()
+                    signal(HidConnectionSignal.HostConnected(host))
+                    scope.launch { hostRepository.saveLastHost(host.address) }
+                }
+                BluetoothProfile.STATE_DISCONNECTED -> {
+                    if (disconnectRequested) {
+                        disconnectRequested = false
+                        signal(HidConnectionSignal.DisconnectedByUser)
+                    } else {
+                        signal(HidConnectionSignal.HostDisconnected(host))
+                        if (this@BluetoothHidController.state.value.shouldReconnect) scheduleReconnect()
+                    }
+                }
             }
         }
     }
@@ -190,7 +307,8 @@ class BluetoothHidController(
             if (intent.action != BluetoothAdapter.ACTION_STATE_CHANGED) return
             when (intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR)) {
                 BluetoothAdapter.STATE_OFF -> synchronized(lock) {
-                    // オフになるとプロキシは使えなくなる。オンに戻ったら取り直す
+                    // オフになるとプロキシは使えなくなる。オンに戻ったら取り直し、前回のホストへ接続する
+                    cancelReconnect()
                     releaseProfile()
                     signal(HidConnectionSignal.BluetoothTurnedOff)
                 }
@@ -250,5 +368,9 @@ class BluetoothHidController(
     private companion object {
         /** HID 非対応と判定するまでの待ち時間(docs/design/v2.0-standard.md 13. 決定事項 14)。 */
         const val PROFILE_TIMEOUT_MILLIS = 5_000L
+
+        /** 使用中に切れたときに再接続を試みる回数と間隔。 */
+        const val RECONNECT_ATTEMPTS = 3
+        const val RECONNECT_INTERVAL_MILLIS = 2_000L
     }
 }

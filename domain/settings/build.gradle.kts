@@ -8,6 +8,8 @@ kotlin {
         commonMain.dependencies {
             api(projects.modelSettings)
             api(projects.modelConnection)
+            // 保存した値の変化を Flow で公開する
+            api(libs.kotlinx.coroutines.core)
         }
     }
 }
