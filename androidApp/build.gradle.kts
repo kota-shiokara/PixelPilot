@@ -82,6 +82,8 @@ dependencies {
     implementation(libs.androidx.material3)
 
     implementation(libs.koin.android)
+    // 画面の ViewModel を Koin から受け取る(koinViewModel)
+    implementation(libs.koin.androidx.compose)
     // 設定・前回のホストの保存(domain/settings の実装)
     implementation(libs.androidx.datastore.preferences)
 

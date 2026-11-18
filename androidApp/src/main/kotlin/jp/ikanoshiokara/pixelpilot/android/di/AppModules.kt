@@ -1,10 +1,12 @@
 package jp.ikanoshiokara.pixelpilot.android.di
 
+import jp.ikanoshiokara.pixelpilot.android.hostselect.HostSelectViewModel
 import jp.ikanoshiokara.pixelpilot.android.settings.DataStoreHostRepository
 import jp.ikanoshiokara.pixelpilot.domain.settings.HostRepository
 import jp.ikanoshiokara.pixelpilot.transport.bluetooth.hid.di.bluetoothHidModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.Module
+import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 
 /**
@@ -14,6 +16,7 @@ import org.koin.dsl.module
  */
 val androidAppModule: Module = module {
     single<HostRepository> { DataStoreHostRepository(androidContext()) }
+    viewModelOf(::HostSelectViewModel)
 }
 
 /**
