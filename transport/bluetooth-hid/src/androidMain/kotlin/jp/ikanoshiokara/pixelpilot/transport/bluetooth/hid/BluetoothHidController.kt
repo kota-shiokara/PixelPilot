@@ -17,11 +17,15 @@ import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.os.Build
 import androidx.core.content.ContextCompat
+import jp.ikanoshiokara.pixelpilot.domain.hid.HidReport
 import jp.ikanoshiokara.pixelpilot.domain.hid.HidReportDescriptor
+import jp.ikanoshiokara.pixelpilot.domain.hid.ReportId
+import jp.ikanoshiokara.pixelpilot.domain.hid.ReportLength
 import jp.ikanoshiokara.pixelpilot.domain.settings.HostRepository
 import jp.ikanoshiokara.pixelpilot.model.connection.ConnectionState
 import jp.ikanoshiokara.pixelpilot.model.connection.HostDevice
 import jp.ikanoshiokara.pixelpilot.model.connection.TransportKind
+import jp.ikanoshiokara.pixelpilot.model.input.KeyboardLeds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -33,8 +37,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.util.concurrent.Executor
 import java.util.concurrent.Executors
+import java.util.concurrent.ScheduledExecutorService
 
 /**
  * Bluetooth HID Device プロファイルの登録とホストへの接続を管理し、[ConnectionState] を公開する。
@@ -49,7 +53,7 @@ import java.util.concurrent.Executors
  *
  * - 権限の要求そのもの(ダイアログ)はアプリ側で行い、許可されたら [start] を呼ぶ。
  * - アプリがフォアグラウンドに来たら [start]、バックグラウンドに回ったら [stop] を呼ぶ(#44・#45 でつなぐ)。
- * - レポートの送信は #38 で追加する。
+ * - レポートの送信は [sendReport](送信キュー BluetoothHidTransport から呼ぶ)。
  * - 状態の遷移は [reduce](純 Kotlin、単体テストあり)で決める。このクラスは Android の API の結果を
  *   [HidConnectionSignal] に置き換えて渡すだけにする。
  *
@@ -67,8 +71,16 @@ class BluetoothHidController(
     /** Bluetooth HID 経路の接続状態。 */
     val state: StateFlow<ConnectionState> = _state.asStateFlow()
 
-    /** HID のコールバックを受けるスレッド。送信キュー(#38)も同じスレッドで直列化する予定。 */
-    internal val callbackExecutor: Executor = Executors.newSingleThreadExecutor()
+    private val _keyboardLeds = MutableStateFlow(KeyboardLeds())
+
+    /** ホストから通知されたキーボードの LED。接続が切れたら初期値に戻す。 */
+    val keyboardLeds: StateFlow<KeyboardLeds> = _keyboardLeds.asStateFlow()
+
+    /**
+     * HID のコールバックを受けるスレッド。送信キュー(BluetoothHidTransport)も同じスレッドで直列化し、
+     * 接続・切断の通知とレポートの送信が前後しないようにする。
+     */
+    internal val executor: ScheduledExecutorService = Executors.newSingleThreadScheduledExecutor()
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val adapter: BluetoothAdapter?
@@ -88,6 +100,10 @@ class BluetoothHidController(
     /** [disconnect] で切断を要求した。切断の通知が来ても再接続しない。 */
     @Volatile
     private var disconnectRequested = false
+
+    /** 接続中のホスト(レポートの送信先)。未接続なら null。 */
+    @Volatile
+    private var connectedDevice: BluetoothDevice? = null
 
     /** 登録済みのプロファイルプロキシ。未取得・解放済みなら null。 */
     @Volatile
@@ -164,6 +180,13 @@ class BluetoothHidController(
         }
     }
 
+    /** 接続中のホストへレポートを送る。未接続なら送らずに false を返す。送信キューのスレッドから呼ぶ。 */
+    internal fun sendReport(report: HidReport): Boolean {
+        val device = hidDevice ?: return false
+        val host = connectedDevice ?: return false
+        return device.sendReport(host, report.reportId, report.data)
+    }
+
     private fun connectInternal(host: HostDevice) {
         val device = hidDevice ?: return
         val adapter = adapter ?: return
@@ -222,6 +245,7 @@ class BluetoothHidController(
     private fun releaseProfile() {
         profileTimeout?.cancel()
         profileTimeout = null
+        onHostDisconnected()
         val device = hidDevice ?: return
         hidDevice = null
         device.unregisterApp()
@@ -253,7 +277,7 @@ class BluetoothHidController(
                     return
                 }
                 hidDevice = device
-                val registered = device.registerApp(sdpSettings(), null, qosSettings(), callbackExecutor, hidCallback)
+                val registered = device.registerApp(sdpSettings(), null, qosSettings(), executor, hidCallback)
                 if (!registered) signal(HidConnectionSignal.RegisterFailed)
             }
         }
@@ -284,12 +308,14 @@ class BluetoothHidController(
                 }
                 BluetoothProfile.STATE_CONNECTED -> {
                     currentHost = host
+                    connectedDevice = device
                     disconnectRequested = false
                     cancelReconnect()
                     signal(HidConnectionSignal.HostConnected(host))
                     scope.launch { hostRepository.saveLastHost(host.address) }
                 }
                 BluetoothProfile.STATE_DISCONNECTED -> {
+                    onHostDisconnected()
                     if (disconnectRequested) {
                         disconnectRequested = false
                         signal(HidConnectionSignal.DisconnectedByUser)
@@ -300,6 +326,49 @@ class BluetoothHidController(
                 }
             }
         }
+
+        /** ホストが LED の状態を送ってきた(SET_REPORT)。応答を返さないとホストが待たされる。 */
+        override fun onSetReport(device: BluetoothDevice, type: Byte, id: Byte, data: ByteArray) {
+            val accepted = type == BluetoothHidDevice.REPORT_TYPE_OUTPUT && id.toInt() == ReportId.KEYBOARD
+            if (accepted) updateLeds(data)
+            hidDevice?.reportError(
+                device,
+                if (accepted) BluetoothHidDevice.ERROR_RSP_SUCCESS else BluetoothHidDevice.ERROR_RSP_INVALID_RPT_ID,
+            )
+        }
+
+        /** ホストが LED の状態を送ってきた(割り込みチャネル)。 */
+        override fun onInterruptData(device: BluetoothDevice, reportId: Byte, data: ByteArray) {
+            if (reportId.toInt() == ReportId.KEYBOARD) updateLeds(data)
+        }
+
+        /**
+         * ホストが現在のレポートを求めてきた(GET_REPORT)。押下なし・移動なしのレポートを返す。
+         * 応答しないとホストによっては接続を切るため、必ず応答する。
+         */
+        override fun onGetReport(device: BluetoothDevice, type: Byte, id: Byte, bufferSize: Int) {
+            val length = when (id.toInt()) {
+                ReportId.KEYBOARD -> ReportLength.KEYBOARD_INPUT
+                ReportId.MOUSE -> ReportLength.MOUSE_INPUT
+                ReportId.CONSUMER -> ReportLength.CONSUMER_INPUT
+                else -> null
+            }
+            val hid = hidDevice ?: return
+            if (type == BluetoothHidDevice.REPORT_TYPE_INPUT && length != null) {
+                hid.replyReport(device, type, id, ByteArray(length))
+            } else {
+                hid.reportError(device, BluetoothHidDevice.ERROR_RSP_INVALID_RPT_ID)
+            }
+        }
+    }
+
+    private fun updateLeds(data: ByteArray) {
+        if (data.isNotEmpty()) _keyboardLeds.value = KeyboardLeds(data[0].toInt() and 0xFF)
+    }
+
+    private fun onHostDisconnected() {
+        connectedDevice = null
+        _keyboardLeds.value = KeyboardLeds()
     }
 
     private val bluetoothStateReceiver = object : BroadcastReceiver() {

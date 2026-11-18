@@ -3,6 +3,7 @@ package jp.ikanoshiokara.pixelpilot.domain.transport
 import jp.ikanoshiokara.pixelpilot.model.connection.ConnectionState
 import jp.ikanoshiokara.pixelpilot.model.connection.TransportKind
 import jp.ikanoshiokara.pixelpilot.model.input.InputEvent
+import jp.ikanoshiokara.pixelpilot.model.input.KeyboardLeds
 import kotlinx.coroutines.flow.StateFlow
 
 /**
@@ -16,6 +17,9 @@ interface InputTransport {
 
     /** この経路の接続状態。UI(接続状態の表示など)はこれを描画する。 */
     val state: StateFlow<ConnectionState>
+
+    /** ホストから通知されたキーボードの LED(Caps Lock など)。通知が無い経路では常に初期値。 */
+    val keyboardLeds: StateFlow<KeyboardLeds>
 
     /**
      * イベントを送る。呼び出し元のスレッド(UI スレッドなど)をブロックしない。
