@@ -1,5 +1,6 @@
 package jp.ikanoshiokara.pixelpilot.android.di
 
+import jp.ikanoshiokara.pixelpilot.transport.bluetooth.hid.di.bluetoothHidModule
 import org.koin.core.module.Module
 import org.koin.dsl.module
 
@@ -19,9 +20,10 @@ val androidAppModule: Module = module {
  * model・domain は Koin に依存しないため、ここには並ばない。
  *
  * 追加予定:
- * - `transport/bluetooth-hid`: PlatformTransports・InputTransport の実装(#35〜#38)
  * - `view/mouse`・`view/keyboard`: 画面ごとの状態を持つクラス(#40、#42)
  */
 val appModules: List<Module> = listOf(
     androidAppModule,
+    // Bluetooth HID 経路(PlatformTransports。InputTransport などは #36〜#38 で追加)
+    bluetoothHidModule,
 )
