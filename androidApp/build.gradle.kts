@@ -22,12 +22,11 @@ android {
     compileSdk = 35
 
     defaultConfig {
-        // v1.0 からアップデートできるよう applicationId を引き継ぐ(#30)。
-        // そのため v1.0(app モジュール)と同じ端末に同時にはインストールできない(デバッグ版は別の ID、下記)。
+        // v2.0 はまっさらな環境から始めるため、v1.0 からのアップデートは考えない
         applicationId = "jp.ikanoshiokara.pixelpilot"
         minSdk = 28
         targetSdk = 35
-        versionCode = versionCodeOverride ?: 2
+        versionCode = versionCodeOverride ?: 1
         versionName = "2.0.0"
         manifestPlaceholders["appLabel"] = "PixelPilot"
     }
@@ -41,7 +40,7 @@ android {
 
     buildTypes {
         getByName("debug") {
-            // v1.0・リリース版と同じ端末に並べて入れられるよう、アプリ ID と表示名を分ける
+            // リリース版と同じ端末に並べて入れられるよう、アプリ ID と表示名を分ける
             applicationIdSuffix = ".debug"
             versionNameSuffix = "-debug" + (commit?.let { "+$it" } ?: "")
             manifestPlaceholders["appLabel"] = "PixelPilot (debug)"

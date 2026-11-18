@@ -12,7 +12,7 @@ v2.0 は **Firebase App Distribution** と **GitHub Releases** で配布する(G
 手元の端末で開発中の版を試すために、**デバッグ版を main にマージするたびに** 配布する(`.github/workflows/android-debug.yml`)。
 
 - **アプリ ID**: `jp.ikanoshiokara.pixelpilot.debug`(`applicationIdSuffix`)。表示名は「PixelPilot (debug)」
-  - v1.0(`jp.ikanoshiokara.pixelpilot`)や将来のリリース版と、同じ端末に並べて入れられる
+  - リリース版(`jp.ikanoshiokara.pixelpilot`)と、同じ端末に並べて入れられる
 - **タイミング**: main へのマージ(push)ごと
   - 続けてマージしたとき(スタック PR など)は、最初に **5 分待ち**、その間に次のマージが来たら前の実行を取り消す(`concurrency` の `cancel-in-progress`)。最後のマージの分だけが配布される
   - Actions から手動(`workflow_dispatch`)でも動かせる。そのときは待たない
@@ -49,4 +49,4 @@ v2.0 は **Firebase App Distribution** と **GitHub Releases** で配布する(G
 ### 手元のビルドとの関係
 
 - 手元で `./gradlew :androidApp:installDebug` した版も、手元の `~/.android/debug.keystore` で署名される。手順 5 で同じ鍵を Secrets に置けば、配布版と手元の版を上書きし合える
-- 手元のビルドでは `versionCode` は 2、`versionName` は `2.0.0-debug` になる。配布版(コミット数)の方が大きいため、手元の版から配布版へは上書きできるが、逆はできない。その場合はアンインストールしてから入れる
+- 手元のビルドでは `versionCode` は 1、`versionName` は `2.0.0-debug` になる。配布版(コミット数)の方が大きいため、手元の版から配布版へは上書きできるが、逆はできない。その場合はアンインストールしてから入れる
