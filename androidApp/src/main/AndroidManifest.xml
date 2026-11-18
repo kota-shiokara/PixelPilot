@@ -5,7 +5,7 @@
     <application
         android:name=".PixelPilotApplication"
         android:allowBackup="false"
-        android:label="@string/app_name"
+        android:label="${appLabel}"
         android:supportsRtl="true"
         android:theme="@android:style/Theme.Material.NoActionBar">
         <activity

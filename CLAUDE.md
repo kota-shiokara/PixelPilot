@@ -33,6 +33,8 @@ Android SDK が必要。実機の Bluetooth 挙動はエミュレータでは確
 
 CI(`.github/workflows/ci.yml`)が PR と `main` への push で上の 3 つを実行する。テスト・lint のレポートは実行結果のアーティファクト(`reports`)に残る。
 
+デバッグ版は main へのマージごとに Firebase App Distribution で配布する(`.github/workflows/android-debug.yml`、アプリ ID は `jp.ikanoshiokara.pixelpilot.debug`)。準備の手順と仕組みは `docs/distribution.md`。
+
 ### 実行環境ごとの方針
 
 - **リモート環境(Claude Code on the web などのクラウドセッション。環境変数 `CLAUDE_CODE_REMOTE=true`)**: ビルド・テストは時間がかかるため実行しない。
