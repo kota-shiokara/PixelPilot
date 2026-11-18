@@ -79,6 +79,11 @@ class HostSelectViewModel(
         controller.connect(host)
     }
 
+    /** 接続を切って、接続先を選び直す。再接続はしない。 */
+    fun disconnect() {
+        controller.disconnect()
+    }
+
     /** エラーの後の「もう一度」。登録に失敗した場合は登録からやり直し、それ以外は前回のホストへ接続し直す。 */
     fun retry() {
         val state = uiState.value as? HostSelectUiState.Hosts
