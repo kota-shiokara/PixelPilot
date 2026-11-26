@@ -6,7 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
-import jp.ikanoshiokara.pixelpilot.android.hostselect.HostSelectRoute
+import jp.ikanoshiokara.pixelpilot.android.main.AppRoot
 import jp.ikanoshiokara.pixelpilot.transport.bluetooth.hid.BluetoothHidController
 import jp.ikanoshiokara.pixelpilot.view.common.PixelPilotTheme
 import org.koin.android.ext.android.inject
@@ -19,8 +19,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             PixelPilotTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
-                    // メイン画面(マウス・キーボード)と画面遷移は #45 で追加する
-                    HostSelectRoute()
+                    AppRoot()
                 }
             }
         }

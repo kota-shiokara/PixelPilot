@@ -58,6 +58,12 @@
     <string name="retry">もう一度</string>
 
     <string name="connected_status">接続中</string>
-    <string name="connected_note">マウス・キーボードの画面は v2.0.1 で追加します。</string>
+    <string name="connected_note">マウスの画面へ進みます。</string>
     <string name="disconnect">切断して接続先を選び直す</string>
+
+    <string name="tab_mouse">マウス</string>
+    <string name="tab_keyboard">キーボード</string>
+    <string name="tab_settings">設定</string>
+    <string name="keyboard_coming">キーボードは v2.0.2 で追加します。</string>
+    <string name="settings_coming">設定の項目は v2.0.2 で追加します。</string>
 </resources>
