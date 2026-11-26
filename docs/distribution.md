@@ -1,11 +1,11 @@
 # 配布
 
-v2.0 は **Firebase App Distribution** と **GitHub Releases** で配布する(Google Play には出さない。`docs/design/v2.0-standard.md` 13. 決定事項 10)。
+**Firebase App Distribution** と **GitHub Releases** で配布する(Google Play には出さない。`docs/design/v2.0-standard.md` 13. 決定事項 10)。
 
 | 配布物 | 配布先 | 状態 |
 |---|---|---|
 | デバッグ版(`androidApp`) | Firebase App Distribution | 整備済み(このドキュメント) |
-| リリース版(署名済み APK) | GitHub Releases・Firebase App Distribution | 未整備(#72) |
+| リリース版(署名済み APK) | GitHub Releases・Firebase App Distribution | 未整備(バックログ、#106) |
 
 ## デバッグ版の配布
 
