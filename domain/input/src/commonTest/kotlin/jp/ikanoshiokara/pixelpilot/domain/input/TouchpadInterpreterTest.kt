@@ -18,7 +18,7 @@ class TouchpadInterpreterTest {
     private fun down(id: Long, x: Float, y: Float) = interpreter.onTouch(TouchEvent.Down(id, x, y, now))
     private fun move(id: Long, x: Float, y: Float) = interpreter.onTouch(TouchEvent.Move(id, x, y, now))
     private fun up(id: Long) = interpreter.onTouch(TouchEvent.Up(id, now))
-    private fun wait(millis: Long) { now += millis }
+    private fun elapse(millis: Long) { now += millis }
 
     private fun click(button: Button) = listOf(
         InputEvent.MouseButton(button, pressed = true),
@@ -28,7 +28,7 @@ class TouchpadInterpreterTest {
     @Test
     fun oneFingerTapIsLeftClick() {
         down(1, 100f, 100f)
-        wait(80)
+        elapse(80)
         assertEquals(click(Button.LEFT), up(1))
     }
 
@@ -36,14 +36,14 @@ class TouchpadInterpreterTest {
     fun smallJitterWithinSlopIsStillTap() {
         down(1, 100f, 100f)
         assertTrue(move(1, 103f, 104f).isEmpty())
-        wait(80)
+        elapse(80)
         assertEquals(click(Button.LEFT), up(1))
     }
 
     @Test
     fun longPressIsNotTap() {
         down(1, 100f, 100f)
-        wait(600)
+        elapse(600)
         assertTrue(up(1).isEmpty())
     }
 
@@ -53,7 +53,7 @@ class TouchpadInterpreterTest {
         // 10dp 動いた時点でスロップ(8dp)を超える。超えるまでの分は送らない
         assertEquals(listOf(InputEvent.PointerMove(10f, 0f)), move(1, 110f, 100f))
         assertEquals(listOf(InputEvent.PointerMove(5f, -3f)), move(1, 115f, 97f))
-        wait(80)
+        elapse(80)
         // 動いた後は、短くてもタップにはしない
         assertTrue(up(1).isEmpty())
     }
@@ -70,7 +70,7 @@ class TouchpadInterpreterTest {
     fun twoFingerTapIsRightClick() {
         down(1, 100f, 100f)
         down(2, 140f, 100f)
-        wait(100)
+        elapse(100)
         assertTrue(up(1).isEmpty())
         assertEquals(click(Button.RIGHT), up(2))
     }
@@ -80,7 +80,7 @@ class TouchpadInterpreterTest {
         down(1, 100f, 100f)
         down(2, 140f, 100f)
         down(3, 180f, 100f)
-        wait(100)
+        elapse(100)
         up(1)
         up(2)
         assertEquals(click(Button.MIDDLE), up(3))
@@ -89,11 +89,11 @@ class TouchpadInterpreterTest {
     @Test
     fun doubleTapIsTwoLeftClicks() {
         down(1, 100f, 100f)
-        wait(60)
+        elapse(60)
         assertEquals(click(Button.LEFT), up(1))
-        wait(120)
+        elapse(120)
         down(2, 105f, 102f)
-        wait(60)
+        elapse(60)
         // ホストは続けて届いた 2 回のクリックをダブルクリックとして扱う
         assertEquals(click(Button.LEFT), up(2))
     }
@@ -101,9 +101,9 @@ class TouchpadInterpreterTest {
     @Test
     fun tapThenHoldAndMoveIsDrag() {
         down(1, 100f, 100f)
-        wait(60)
+        elapse(60)
         up(1)
-        wait(120)
+        elapse(120)
         down(2, 102f, 100f)
         // 動き始めたら左ボタンを押し、そのまま移動する
         assertEquals(
@@ -111,7 +111,7 @@ class TouchpadInterpreterTest {
             move(2, 112f, 100f),
         )
         assertEquals(listOf(InputEvent.PointerMove(20f, 0f)), move(2, 132f, 100f))
-        wait(800)
+        elapse(800)
         // 離したらボタンを離す
         assertEquals(listOf(InputEvent.MouseButton(Button.LEFT, pressed = false)), up(2))
     }
@@ -119,9 +119,9 @@ class TouchpadInterpreterTest {
     @Test
     fun touchAfterDoubleTapTimeoutIsNotDrag() {
         down(1, 100f, 100f)
-        wait(60)
+        elapse(60)
         up(1)
-        wait(400)
+        elapse(400)
         down(2, 100f, 100f)
         assertEquals(listOf(InputEvent.PointerMove(10f, 0f)), move(2, 110f, 100f))
     }
@@ -129,9 +129,9 @@ class TouchpadInterpreterTest {
     @Test
     fun touchFarFromPreviousTapIsNotDrag() {
         down(1, 100f, 100f)
-        wait(60)
+        elapse(60)
         up(1)
-        wait(100)
+        elapse(100)
         down(2, 300f, 300f)
         assertEquals(listOf(InputEvent.PointerMove(10f, 0f)), move(2, 310f, 300f))
     }
@@ -143,7 +143,7 @@ class TouchpadInterpreterTest {
         // 1 本目が下へ 32dp: 2 本の平均で 16dp = 1 段。従来の向きでは指を下へ → 下へスクロール(負)
         assertEquals(listOf(InputEvent.Scroll(vertical = -1f, horizontal = 0f)), move(1, 100f, 132f))
         assertEquals(listOf(InputEvent.Scroll(vertical = -1f, horizontal = 0f)), move(2, 140f, 132f))
-        wait(100)
+        elapse(100)
         up(1)
         // スクロールの後はクリックにしない
         assertTrue(up(2).isEmpty())
@@ -181,9 +181,9 @@ class TouchpadInterpreterTest {
     @Test
     fun cancelReleasesDrag() {
         down(1, 100f, 100f)
-        wait(60)
+        elapse(60)
         up(1)
-        wait(100)
+        elapse(100)
         down(2, 100f, 100f)
         move(2, 120f, 100f)
         assertEquals(
@@ -192,7 +192,7 @@ class TouchpadInterpreterTest {
         )
         // 打ち切った後は、次のタップもふつうのクリック
         down(3, 100f, 100f)
-        wait(60)
+        elapse(60)
         assertEquals(click(Button.LEFT), up(3))
     }
 
