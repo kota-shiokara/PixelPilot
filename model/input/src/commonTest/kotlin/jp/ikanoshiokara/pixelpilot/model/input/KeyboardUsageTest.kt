@@ -16,6 +16,19 @@ class KeyboardUsageTest {
     }
 
     @Test
+    fun japaneseKeysMatchDesign() {
+        // docs/design/v2.0-standard.md 5.1
+        assertEquals(0x35, KeyboardUsage.GRAVE) // 半角/全角
+        assertEquals(0x87, KeyboardUsage.INTERNATIONAL_1) // ろ
+        assertEquals(0x88, KeyboardUsage.INTERNATIONAL_2) // かな
+        assertEquals(0x89, KeyboardUsage.INTERNATIONAL_3) // ¥
+        assertEquals(0x8A, KeyboardUsage.INTERNATIONAL_4) // 変換
+        assertEquals(0x8B, KeyboardUsage.INTERNATIONAL_5) // 無変換
+        assertEquals(0x90, KeyboardUsage.LANG_1) // macOS のかな
+        assertEquals(0x91, KeyboardUsage.LANG_2) // macOS の英数
+    }
+
+    @Test
     fun onlyLeftControlToRightGuiAreModifiers() {
         (0xE0..0xE7).forEach { assertTrue(KeyboardUsage.isModifier(it), "0x${it.toString(16)}") }
         assertFalse(KeyboardUsage.isModifier(0xDF))
