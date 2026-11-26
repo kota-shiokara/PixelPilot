@@ -37,7 +37,7 @@
 ## 配布
 
 - 開発版: main へのマージごとに Firebase App Distribution で配布しています(`docs/distribution.md`)
-- 正式版: GitHub Releases で配布する予定です
+- 正式版: GitHub Releases で配布する予定です(#106)
 
 ## 開発
 
