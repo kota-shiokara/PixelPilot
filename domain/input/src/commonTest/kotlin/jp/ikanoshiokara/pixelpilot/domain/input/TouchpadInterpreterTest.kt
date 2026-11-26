@@ -6,6 +6,9 @@ import jp.ikanoshiokara.pixelpilot.model.settings.MouseSettings
 import jp.ikanoshiokara.pixelpilot.model.settings.ScrollDirection
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class TouchpadInterpreterTest {
@@ -19,6 +22,7 @@ class TouchpadInterpreterTest {
     private fun move(id: Long, x: Float, y: Float) = interpreter.onTouch(TouchEvent.Move(id, x, y, now))
     private fun up(id: Long) = interpreter.onTouch(TouchEvent.Up(id, now))
     private fun elapse(millis: Long) { now += millis }
+    private fun tick() = interpreter.onTimePassed(now)
 
     private fun click(button: Button) = listOf(
         InputEvent.MouseButton(button, pressed = true),
@@ -200,5 +204,123 @@ class TouchpadInterpreterTest {
     fun unknownPointerIsIgnored() {
         assertTrue(move(9, 10f, 10f).isEmpty())
         assertTrue(up(9).isEmpty())
+    }
+
+    @Test
+    fun longPressOpensDial() {
+        down(1, 100f, 100f)
+        elapse(499)
+        assertFalse(tick())
+        assertNull(interpreter.dial)
+        elapse(1)
+        assertTrue(tick())
+        assertEquals(DialState(centerX = 100f, centerY = 100f, fingerX = 100f, fingerY = 100f, selected = null), interpreter.dial)
+        // 開いた後の知らせでは、もう開かない(振動を繰り返さない)
+        elapse(100)
+        assertFalse(tick())
+    }
+
+    @Test
+    fun dialSelectsByDirectionAndSendsButtonOnRelease() {
+        val cases = listOf(
+            Triple(60f, 100f, DialItem.BACK),
+            Triple(140f, 100f, DialItem.FORWARD),
+            Triple(100f, 60f, DialItem.MIDDLE),
+            Triple(100f, 140f, DialItem.RIGHT),
+        )
+        cases.forEachIndexed { index, (x, y, item) ->
+            val id = index.toLong()
+            down(id, 100f, 100f)
+            elapse(500)
+            tick()
+            // ダイアルを開いている間はカーソルを動かさない
+            assertTrue(move(id, x, y).isEmpty(), item.toString())
+            assertEquals(item, interpreter.dial?.selected)
+            assertEquals(click(item.button), up(id), item.toString())
+            assertNull(interpreter.dial)
+            elapse(1_000)
+        }
+    }
+
+    @Test
+    fun releasingNearCenterCancelsDial() {
+        down(1, 100f, 100f)
+        elapse(500)
+        tick()
+        // 40dp ずらして選んでから、中心付近(32dp 未満)へ戻す
+        move(1, 60f, 100f)
+        move(1, 80f, 100f)
+        assertNull(interpreter.dial?.selected)
+        assertTrue(up(1).isEmpty())
+        assertNull(interpreter.dial)
+    }
+
+    @Test
+    fun dialOpensOnNextMoveEvenWithoutTick() {
+        down(1, 100f, 100f)
+        elapse(600)
+        // 時刻の知らせが来なくても、動かしたときの時刻で長押しと判定する
+        assertTrue(move(1, 140f, 100f).isEmpty())
+        assertEquals(DialItem.FORWARD, interpreter.dial?.selected)
+        assertEquals(click(Button.FORWARD), up(1))
+    }
+
+    @Test
+    fun movingBeforeLongPressDoesNotOpenDial() {
+        down(1, 100f, 100f)
+        move(1, 110f, 100f)
+        elapse(600)
+        assertFalse(tick())
+        assertEquals(listOf(InputEvent.PointerMove(10f, 0f)), move(1, 120f, 100f))
+    }
+
+    @Test
+    fun holdAfterTapPrefersDragOverDial() {
+        down(1, 100f, 100f)
+        elapse(60)
+        up(1)
+        elapse(100)
+        down(2, 100f, 100f)
+        elapse(600)
+        assertFalse(tick())
+        assertEquals(
+            listOf(InputEvent.MouseButton(Button.LEFT, pressed = true), InputEvent.PointerMove(10f, 0f)),
+            move(2, 110f, 100f),
+        )
+    }
+
+    @Test
+    fun secondFingerClosesDialAndIgnoresRestOfGesture() {
+        down(1, 100f, 100f)
+        elapse(500)
+        tick()
+        move(1, 60f, 100f)
+        assertTrue(down(2, 200f, 100f).isEmpty())
+        assertNull(interpreter.dial)
+        assertTrue(move(2, 200f, 140f).isEmpty())
+        assertTrue(up(2).isEmpty())
+        assertTrue(up(1).isEmpty())
+        // 次のジェスチャーはふつうに動く
+        down(3, 100f, 100f)
+        elapse(60)
+        assertEquals(click(Button.LEFT), up(3))
+    }
+
+    @Test
+    fun cancelClosesDial() {
+        down(1, 100f, 100f)
+        elapse(500)
+        tick()
+        assertNotNull(interpreter.dial)
+        assertTrue(interpreter.onTouch(TouchEvent.Cancel(now)).isEmpty())
+        assertNull(interpreter.dial)
+    }
+
+    @Test
+    fun twoFingerHoldDoesNotOpenDial() {
+        down(1, 100f, 100f)
+        down(2, 140f, 100f)
+        elapse(600)
+        assertFalse(tick())
     }
 }
