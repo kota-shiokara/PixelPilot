@@ -2,7 +2,10 @@ package jp.ikanoshiokara.pixelpilot.android.di
 
 import jp.ikanoshiokara.pixelpilot.android.hostselect.HostSelectViewModel
 import jp.ikanoshiokara.pixelpilot.android.settings.DataStoreHostRepository
+import jp.ikanoshiokara.pixelpilot.android.settings.DataStoreSettingsRepository
+import jp.ikanoshiokara.pixelpilot.android.settings.SettingsViewModel
 import jp.ikanoshiokara.pixelpilot.domain.settings.HostRepository
+import jp.ikanoshiokara.pixelpilot.domain.settings.SettingsRepository
 import jp.ikanoshiokara.pixelpilot.transport.bluetooth.hid.di.bluetoothHidModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.Module
@@ -11,12 +14,12 @@ import org.koin.dsl.module
 
 /**
  * androidApp 固有の定義。Android の実装をインターフェースに束縛する。
- *
- * 追加予定: 設定のリポジトリ(#46)
  */
 val androidAppModule: Module = module {
     single<HostRepository> { DataStoreHostRepository(androidContext()) }
+    single<SettingsRepository> { DataStoreSettingsRepository(androidContext()) }
     viewModelOf(::HostSelectViewModel)
+    viewModelOf(::SettingsViewModel)
 }
 
 /**
