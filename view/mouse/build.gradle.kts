@@ -12,3 +12,7 @@ kotlin {
         }
     }
 }
+
+compose.resources {
+    packageOfResClass = "jp.ikanoshiokara.pixelpilot.view.mouse.resources"
+}

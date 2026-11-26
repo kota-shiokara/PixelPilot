@@ -24,6 +24,8 @@ class KmpComposeConventionPlugin : Plugin<Project> {
                     implementation(libs.findLibrary("compose-mp-foundation").get())
                     implementation(libs.findLibrary("compose-mp-ui").get())
                     implementation(libs.findLibrary("compose-mp-material3").get())
+                    // 文字列などのリソース(src/commonMain/composeResources)。各モジュールの Res クラスから使う
+                    implementation(libs.findLibrary("compose-mp-resources").get())
                     // 画面ごとの状態を持つクラスを Koin から受け取る(koinInject など)。koin-core も含む
                     implementation(libs.findLibrary("koin-compose").get())
                 }

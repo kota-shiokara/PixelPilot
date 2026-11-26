@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  view 配下の画面で共通に使う文言。v2.0 は日本語のみ(docs/design/v2.0-standard.md 8.)。
+  v2.x で英語を追加するときは、既定(values/)を英語にし、日本語を values-ja/ に移す。
+-->
+<resources>
+    <string name="status_connecting">接続中…</string>
+    <string name="status_not_connected">接続していません</string>
+    <string name="status_unnamed_host">名前のない機器</string>
+    <string name="error_connection_lost">接続が切れました(再接続中…)</string>
+    <string name="error_bluetooth_off">Bluetooth がオフになりました。オンにすると再接続します</string>
+    <string name="error_host_not_found">PC が見つかりません。PC の電源と Bluetooth がオンか確認してください</string>
+    <string name="error_host_rejected">PC が接続を拒否しました。ペアリングし直してください</string>
+    <string name="error_register_failed">Bluetooth の準備に失敗しました</string>
+</resources>

@@ -10,3 +10,8 @@ kotlin {
         }
     }
 }
+
+// 文字列などのリソースの Res クラスのパッケージ(既定は自動で決まる名前なので、分かりやすく固定する)
+compose.resources {
+    packageOfResClass = "jp.ikanoshiokara.pixelpilot.view.common.resources"
+}
