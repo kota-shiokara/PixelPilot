@@ -31,6 +31,7 @@ import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import jp.ikanoshiokara.pixelpilot.android.BuildConfig
 import jp.ikanoshiokara.pixelpilot.android.R
 import jp.ikanoshiokara.pixelpilot.model.settings.MouseSettings
 import jp.ikanoshiokara.pixelpilot.view.common.PixelPilotColors
@@ -112,7 +113,7 @@ private fun Placeholder(text: String) {
     }
 }
 
-/** 設定画面(#46)ができるまでの仮の表示。接続先の選び直しだけ置く。 */
+/** 設定画面(#46)ができるまでの仮の表示。接続先の選び直しとバージョンだけ置く。 */
 @Composable
 private fun SettingsPlaceholder(onDisconnect: () -> Unit) {
     Column(
@@ -128,6 +129,12 @@ private fun SettingsPlaceholder(onDisconnect: () -> Unit) {
         OutlinedButton(onClick = onDisconnect, modifier = Modifier.fillMaxWidth().height(52.dp)) {
             Text(text = stringResource(R.string.disconnect), color = PixelPilotColors.OnSurface)
         }
+        // デバッグ版は「2.0.0-debug+<コミット>」になり、どのコードのビルドか分かる
+        Text(
+            text = stringResource(R.string.app_version, BuildConfig.VERSION_NAME),
+            style = MaterialTheme.typography.bodySmall,
+            color = PixelPilotColors.OnSurfaceMuted,
+        )
     }
 }
 

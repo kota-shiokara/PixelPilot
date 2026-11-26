@@ -64,6 +64,7 @@
     <string name="tab_mouse">マウス</string>
     <string name="tab_keyboard">キーボード</string>
     <string name="tab_settings">設定</string>
-    <string name="keyboard_coming">キーボードは v2.0.2 で追加します。</string>
-    <string name="settings_coming">設定の項目は v2.0.2 で追加します。</string>
+    <string name="keyboard_coming">キーボードは今後のバージョンで追加します。</string>
+    <string name="settings_coming">設定の項目は今後のバージョンで追加します。</string>
+    <string name="app_version">バージョン %1$s</string>
 </resources>
