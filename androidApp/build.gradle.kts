@@ -58,6 +58,8 @@ android {
     }
     buildFeatures {
         compose = true
+        // 設定画面にバージョン(BuildConfig.VERSION_NAME)を出す
+        buildConfig = true
     }
 }
 
