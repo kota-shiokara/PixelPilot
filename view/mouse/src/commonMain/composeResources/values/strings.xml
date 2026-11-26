@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- マウス画面の文言。v2.0 は日本語のみ(docs/design/v2.0-standard.md 8.) -->
+<resources>
+    <string name="mouse_surface_description">マウスの操作面</string>
+    <string name="hint_one_finger">1 本指: 移動 / タップ: 左クリック</string>
+    <string name="hint_two_fingers">2 本指: スクロール / タップ: 右クリック</string>
+    <string name="hint_three_fingers">3 本指タップ: 中クリック</string>
+    <string name="button_left">左</string>
+    <string name="button_middle">中</string>
+    <string name="button_right">右</string>
+</resources>
