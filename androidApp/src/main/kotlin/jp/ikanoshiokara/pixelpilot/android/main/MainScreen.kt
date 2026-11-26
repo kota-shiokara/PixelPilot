@@ -76,7 +76,7 @@ fun MainScreen(onDisconnect: () -> Unit) {
 @Composable
 private fun TabBar(selected: MainTab, onSelect: (MainTab) -> Unit) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(start = 8.dp, end = 8.dp, bottom = 16.dp),
+        modifier = Modifier.fillMaxWidth().padding(start = 8.dp, end = 8.dp, bottom = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         MainTab.entries.forEach { tab ->
