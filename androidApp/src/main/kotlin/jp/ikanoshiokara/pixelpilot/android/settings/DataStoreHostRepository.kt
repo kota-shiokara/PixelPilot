@@ -1,17 +1,11 @@
 package jp.ikanoshiokara.pixelpilot.android.settings
 
 import android.content.Context
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
-import androidx.datastore.preferences.preferencesDataStore
 import jp.ikanoshiokara.pixelpilot.domain.settings.HostRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-
-/** アプリの設定を保存する DataStore。プロセス内で 1 つだけ作る(同じファイルを複数の DataStore で開けないため)。 */
-private val Context.settingsDataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
 /** [HostRepository] の DataStore による実装。 */
 class DataStoreHostRepository(context: Context) : HostRepository {

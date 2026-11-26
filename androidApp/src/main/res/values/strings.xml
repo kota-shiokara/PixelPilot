@@ -65,6 +65,21 @@
     <string name="tab_keyboard">キーボード</string>
     <string name="tab_settings">設定</string>
     <string name="keyboard_coming">キーボードは今後のバージョンで追加します。</string>
-    <string name="settings_coming">設定の項目は今後のバージョンで追加します。</string>
+
+    <string name="settings_title">設定</string>
+    <string name="settings_section_mouse">マウス</string>
+    <string name="settings_sensitivity">移動感度</string>
+    <string name="settings_sensitivity_value">%1$.1f 倍</string>
+    <string name="settings_scroll_direction">スクロール方向</string>
+    <string name="settings_scroll_natural">ナチュラル</string>
+    <string name="settings_scroll_natural_note">指を上へ動かすと、内容が上へ動く(スマホと同じ)</string>
+    <string name="settings_scroll_traditional">従来</string>
+    <string name="settings_scroll_traditional_note">指を上へ動かすと、上へスクロールする(マウスのホイールと同じ)</string>
+    <string name="settings_show_buttons">クリックボタンを表示する</string>
+    <string name="settings_show_buttons_note">右・中ボタンを押したままの操作(パンなど)に使います。クリックはタップと長押しの操作ダイアルでもできます。</string>
+    <string name="settings_section_screen">画面</string>
+    <string name="settings_keep_screen_on">画面を点けたままにする</string>
+    <string name="settings_keep_screen_on_note">マウス・キーボードの画面を開いている間。オフにすると、画面のスリープで接続が切れることがあります。</string>
+    <string name="settings_section_connection">接続先</string>
     <string name="app_version">バージョン %1$s</string>
 </resources>

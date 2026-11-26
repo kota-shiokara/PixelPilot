@@ -51,4 +51,20 @@ class AppScreenTest {
             assertEquals(state.toString(), AppScreen.HOST_SELECT, nextScreen(AppScreen.MAIN, state))
         }
     }
+
+    @Test
+    fun resetToLeavesOnlyTheGivenScreen() {
+        val backStack = mutableListOf(AppScreen.HOST_SELECT)
+        backStack.resetTo(AppScreen.MAIN)
+        assertEquals(listOf(AppScreen.MAIN), backStack)
+        backStack.resetTo(AppScreen.HOST_SELECT)
+        assertEquals(listOf(AppScreen.HOST_SELECT), backStack)
+    }
+
+    @Test
+    fun resetToSameScreenKeepsBackStack() {
+        val backStack = mutableListOf(AppScreen.MAIN)
+        backStack.resetTo(AppScreen.MAIN)
+        assertEquals(listOf(AppScreen.MAIN), backStack)
+    }
 }

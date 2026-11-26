@@ -2,7 +2,10 @@ package jp.ikanoshiokara.pixelpilot.android.main
 
 import jp.ikanoshiokara.pixelpilot.model.connection.ConnectionState
 
-/** アプリの画面(画面遷移は Android 固有の骨格、docs/design/v2.0-standard.md 9.)。 */
+/**
+ * アプリの画面(画面遷移は Android 固有の骨格、docs/design/v2.0-standard.md 9.)。
+ * Navigation 3 のバックスタックの要素(キー)として使う。
+ */
 enum class AppScreen {
     /** ホスト選択(起動時の画面)。 */
     HOST_SELECT,
@@ -32,4 +35,16 @@ fun nextScreen(current: AppScreen, state: ConnectionState): AppScreen = when (st
     is ConnectionState.Connecting,
     is ConnectionState.Error,
     -> current
+}
+
+/**
+ * バックスタックを [screen] だけにする。今と同じ画面なら何もしない(画面を作り直さない)。
+ *
+ * ホスト選択 ⇔ メインは「戻る」で行き来しないため、バックスタックには常に 1 画面だけを置く。
+ * 空のバックスタックは描画できないため、先に [screen] を積んでから前の画面を除く。
+ */
+fun MutableList<AppScreen>.resetTo(screen: AppScreen) {
+    if (size == 1 && first() == screen) return
+    add(screen)
+    while (size > 1) removeAt(0)
 }

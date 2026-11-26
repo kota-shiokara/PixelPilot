@@ -19,7 +19,8 @@ val debugKeystore = providers.gradleProperty("pixelpilot.debugKeystore").orNull
 
 android {
     namespace = "jp.ikanoshiokara.pixelpilot.android"
-    compileSdk = 35
+    // Navigation 3(navigation3-ui)が compileSdk 36 以上を求めるため 36 にする。targetSdk は 35 のまま
+    compileSdk = 36
 
     defaultConfig {
         // v2.0 はまっさらな環境から始めるため、v1.0 からのアップデートは考えない
@@ -82,6 +83,10 @@ dependencies {
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.ui)
     implementation(libs.androidx.material3)
+
+    // 画面遷移(ホスト選択 ⇔ メイン)。骨格のため androidApp だけで使う(docs/design/v2.0-standard.md 9.)
+    implementation(libs.androidx.navigation3.runtime)
+    implementation(libs.androidx.navigation3.ui)
 
     implementation(libs.koin.android)
     // 画面の ViewModel を Koin から受け取る(koinViewModel)

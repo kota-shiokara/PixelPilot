@@ -12,11 +12,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -31,11 +31,12 @@ import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import jp.ikanoshiokara.pixelpilot.android.BuildConfig
 import jp.ikanoshiokara.pixelpilot.android.R
-import jp.ikanoshiokara.pixelpilot.model.settings.MouseSettings
+import jp.ikanoshiokara.pixelpilot.android.settings.SettingsScreen
+import jp.ikanoshiokara.pixelpilot.android.settings.SettingsViewModel
 import jp.ikanoshiokara.pixelpilot.view.common.PixelPilotColors
 import jp.ikanoshiokara.pixelpilot.view.mouse.MouseScreen
+import org.koin.androidx.compose.koinViewModel
 
 /** メイン画面のタブ。設定はタブ列の右端の入口(画面デザインの仮案)。 */
 enum class MainTab(val label: Int) {
@@ -47,27 +48,29 @@ enum class MainTab(val label: Int) {
 /**
  * メイン画面(docs/design/v2.0-standard.md 9.)。上に帯は置かず、下部のタブ列でマウス / キーボード / 設定を切り替える。
  *
- * - 開いている間は画面を点けたままにする(7.3。設定で切り替えるのは #46)
+ * - 開いている間は画面を点けたままにする(7.3)。設定でオフにできる(既定: オン)
  * - システムの「戻る」でアプリを終了しない(誤操作で接続が切れないように)。マウス以外のタブではマウスに戻る
+ * - マウスの画面には、保存した設定(移動感度・スクロール方向・クリックボタンの表示)を渡す
  *
  * @param onDisconnect 接続を切って、接続先を選び直す
  */
 @Composable
-fun MainScreen(onDisconnect: () -> Unit) {
+fun MainScreen(onDisconnect: () -> Unit, settingsViewModel: SettingsViewModel = koinViewModel()) {
     var tab by rememberSaveable { mutableStateOf(MainTab.MOUSE) }
+    val mouseSettings by settingsViewModel.mouseSettings.collectAsState()
+    val appSettings by settingsViewModel.appSettings.collectAsState()
 
     BackHandler {
         if (tab != MainTab.MOUSE) tab = MainTab.MOUSE
     }
-    KeepScreenOn()
+    if (appSettings.keepScreenOn) KeepScreenOn()
 
     Column(modifier = Modifier.fillMaxSize()) {
         Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
             when (tab) {
-                // 設定の保存(#46)までは既定値で動かす
-                MainTab.MOUSE -> MouseScreen(settings = MouseSettings())
+                MainTab.MOUSE -> MouseScreen(settings = mouseSettings)
                 MainTab.KEYBOARD -> Placeholder(stringResource(R.string.keyboard_coming))
-                MainTab.SETTINGS -> SettingsPlaceholder(onDisconnect)
+                MainTab.SETTINGS -> SettingsScreen(viewModel = settingsViewModel, onDisconnect = onDisconnect)
             }
         }
         TabBar(selected = tab, onSelect = { tab = it })
@@ -113,32 +116,7 @@ private fun Placeholder(text: String) {
     }
 }
 
-/** 設定画面(#46)ができるまでの仮の表示。接続先の選び直しとバージョンだけ置く。 */
-@Composable
-private fun SettingsPlaceholder(onDisconnect: () -> Unit) {
-    Column(
-        modifier = Modifier.fillMaxSize().padding(24.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Text(
-            text = stringResource(R.string.settings_coming),
-            style = MaterialTheme.typography.bodyLarge,
-            color = PixelPilotColors.OnSurfaceMuted,
-        )
-        OutlinedButton(onClick = onDisconnect, modifier = Modifier.fillMaxWidth().height(52.dp)) {
-            Text(text = stringResource(R.string.disconnect), color = PixelPilotColors.OnSurface)
-        }
-        // デバッグ版は「2.0.0-debug+<コミット>」になり、どのコードのビルドか分かる
-        Text(
-            text = stringResource(R.string.app_version, BuildConfig.VERSION_NAME),
-            style = MaterialTheme.typography.bodySmall,
-            color = PixelPilotColors.OnSurfaceMuted,
-        )
-    }
-}
-
-/** この画面が出ている間、画面を点けたままにする(FLAG_KEEP_SCREEN_ON と同じ)。 */
+/** この部品が出ている間、画面を点けたままにする(FLAG_KEEP_SCREEN_ON と同じ)。外れると元に戻す。 */
 @Composable
 private fun KeepScreenOn() {
     val view = LocalView.current
