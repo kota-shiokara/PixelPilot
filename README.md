@@ -51,4 +51,4 @@ Kotlin Multiplatform / Compose Multiplatform で作っています。v2.0 のタ
 
 - ビルドには Android SDK が必要です。Bluetooth の挙動はエミュレーターでは確認できないため、実機で確認してください
 - 設計: [`docs/design/v2.0.md`](./docs/design/v2.0.md)(方針)、[`docs/design/v2.0-standard.md`](./docs/design/v2.0-standard.md)(Android 単体版の詳細)
-- モジュールは `model/`・`domain/`・`view/`・`transport/`・`androidApp/` に分けています。`app/` は v1.0 のコードで、v2.1 で削除します
+- モジュールは `model/`・`domain/`・`view/`・`transport/`・`androidApp/` に分けています

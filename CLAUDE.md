@@ -4,8 +4,7 @@
 
 ## 現状
 
-- `app/` は v1.0(Android 単体の Bluetooth HID マウス)。Kotlin + Jetpack Compose、minSdk 28。v2.0 の `androidApp/` に置き換えたら削除する(#30)。
-- v2.0(Kotlin Multiplatform)は `model/`・`domain/`・`view/`・`transport/`・`androidApp/` に置く。開発中。
+- v2.0(Kotlin Multiplatform)は `model/`・`domain/`・`view/`・`transport/`・`androidApp/` に置く。v1.0 の `app/` は v2.1 で削除した(#30)。
   - `model/*`(データ型)、`domain/*`(ロジックとインターフェース)、`view/*`(Compose Multiplatform の UI)、`transport/*`(経路の実装)、`androidApp`(骨格)
   - 各モジュールのビルド設定は `build-logic/` の convention plugin(`pixelpilot.kmp.library` / `pixelpilot.kmp.compose`)にまとめる。
   - v2.0 のターゲットは Android のみ。iOS・デスクトップのターゲットは v2.x で `build-logic` に追加する。
