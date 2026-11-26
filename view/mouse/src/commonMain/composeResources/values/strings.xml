@@ -5,7 +5,15 @@
     <string name="hint_one_finger">1 本指: 移動 / タップ: 左クリック</string>
     <string name="hint_two_fingers">2 本指: スクロール / タップ: 右クリック</string>
     <string name="hint_three_fingers">3 本指タップ: 中クリック</string>
+    <string name="hint_long_press">長押し: ダイアル(戻る・進む など)</string>
     <string name="button_left">左</string>
     <string name="button_middle">中</string>
     <string name="button_right">右</string>
+    <string name="dial_description">操作ダイアル</string>
+    <string name="dial_back">戻る</string>
+    <string name="dial_forward">進む</string>
+    <string name="dial_middle">中クリック</string>
+    <string name="dial_right">右クリック</string>
+    <string name="dial_release">離すと「%1$s」</string>
+    <string name="dial_choose">方向へずらして選ぶ / ここで離すとキャンセル</string>
 </resources>
